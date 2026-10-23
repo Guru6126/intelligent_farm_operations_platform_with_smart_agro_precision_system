@@ -16,6 +16,8 @@ Do not use a development secret in production. `JWT_EXPIRATION` accepts a Java d
 
 All request and response bodies are JSON.
 
+`GET /` is a public status endpoint that confirms the API is running and lists the authentication routes. It does not serve the frontend application.
+
 ### Register
 
 `POST /api/auth/register`

@@ -48,6 +48,14 @@ class AuthApiTests {
 	}
 
 	@Test
+	void rootShowsPublicApiStatus() throws Exception {
+		mockMvc.perform(get("/"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.status").value("UP"))
+				.andExpect(jsonPath("$.endpoints").isArray());
+	}
+
+	@Test
 	void registerStoresHashedPasswordAndIssuesTokenForAuthenticatedRequests() throws Exception {
 		MvcResult registration = mockMvc.perform(post("/api/auth/register")
 						.contentType(MediaType.APPLICATION_JSON)
