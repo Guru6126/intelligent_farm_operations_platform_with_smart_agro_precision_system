@@ -1,0 +1,628 @@
+
+/* =========================================
+   FARMVERSE NEXUS — GIS FARM DASHBOARD
+   Professional agricultural SaaS design
+   ========================================= */
+
+:root {
+  --gis-primary: #246b45;
+  --gis-primary-dark: #174b30;
+  --gis-primary-light: #e7f4e9;
+  --gis-bg: #f4f7f2;
+  --gis-surface: #ffffff;
+  --gis-text: #20392b;
+  --gis-muted: #718176;
+  --gis-border: #e2e9e0;
+
+  --gis-rice: #2e9b59;
+  --gis-wheat: #d8b34c;
+  --gis-cotton: #d99a43;
+  --gis-maize: #9c83d9;
+
+  --gis-radius: 16px;
+  --gis-shadow: 0 4px 18px rgba(29, 65, 42, 0.055);
+}
+
+/* Base page */
+.gis-page {
+  min-height: 100vh;
+  padding: 28px;
+  background: var(--gis-bg);
+  color: var(--gis-text);
+  font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.gis-page *,
+.gis-page *::before,
+.gis-page *::after {
+  box-sizing: border-box;
+}
+
+/* Main dashboard layout */
+.gis-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 24px;
+  max-width: 1600px;
+  margin: 0 auto;
+  align-items: start;
+}
+
+.gis-main,
+.gis-sidebar {
+  min-width: 0;
+}
+
+.gis-main {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.gis-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Headings */
+.gis-page h1,
+.gis-page h2,
+.gis-page h3 {
+  color: var(--gis-text);
+  margin-top: 0;
+  letter-spacing: -0.025em;
+}
+
+.gis-page h1 {
+  margin-bottom: 8px;
+  font-size: clamp(24px, 2.4vw, 32px);
+  font-weight: 750;
+  line-height: 1.25;
+}
+
+.gis-page h2 {
+  margin-bottom: 14px;
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.gis-page h3 {
+  margin-bottom: 10px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.gis-page p {
+  color: var(--gis-muted);
+}
+
+/* Toolbar */
+.gis-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 14px;
+  padding: 20px;
+  background: var(--gis-surface);
+  border: 1px solid var(--gis-border);
+  border-radius: var(--gis-radius);
+  box-shadow: var(--gis-shadow);
+}
+
+/* Input fields */
+.gis-field {
+  display: flex;
+  flex: 1;
+  min-width: 160px;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gis-field label {
+  color: #53675a;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.gis-field input,
+.gis-field select,
+.gis-save-form input,
+.gis-save-form select {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  color: var(--gis-text);
+  background: #fff;
+  border: 1px solid #d8e2d6;
+  border-radius: 10px;
+  font: inherit;
+  outline: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.gis-field input:focus,
+.gis-field select:focus,
+.gis-save-form input:focus,
+.gis-save-form select:focus {
+  border-color: var(--gis-primary);
+  box-shadow: 0 0 0 3px rgba(36, 107, 69, 0.12);
+}
+
+/* Buttons */
+.gis-button {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  color: var(--gis-primary);
+  background: #fff;
+  border: 1px solid #cbdccd;
+  border-radius: 10px;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.gis-button:hover {
+  background: #f0f7f0;
+  border-color: #a9c8af;
+}
+
+.gis-button:active {
+  transform: translateY(1px);
+}
+
+.gis-button:focus-visible {
+  outline: 3px solid rgba(36, 107, 69, 0.25);
+  outline-offset: 2px;
+}
+
+.gis-primary {
+  color: #fff;
+  background: var(--gis-primary);
+  border-color: var(--gis-primary);
+}
+
+.gis-primary:hover {
+  color: #fff;
+  background: var(--gis-primary-dark);
+  border-color: var(--gis-primary-dark);
+}
+
+.gis-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Notification messages */
+.gis-notice {
+  padding: 13px 16px;
+  color: #285c3b;
+  background: #eaf5ec;
+  border: 1px solid #d1e8d4;
+  border-radius: 11px;
+  font-size: 13px;
+}
+
+.gis-notice:empty {
+  display: none;
+}
+
+/* Map container */
+.gis-map-frame {
+  position: relative;
+  width: 100%;
+  height: 580px;
+  min-height: 360px;
+  overflow: hidden;
+  background: #e7eee4;
+  border: 1px solid var(--gis-border);
+  border-radius: var(--gis-radius);
+  box-shadow: var(--gis-shadow);
+}
+
+.gis-map {
+  width: 100%;
+  height: 100%;
+  background: #e7eee4;
+  font-family: inherit;
+}
+
+/* Leaflet zoom controls */
+.gis-map .leaflet-control-zoom {
+  overflow: hidden;
+  border: 1px solid #dce5d9 !important;
+  border-radius: 10px !important;
+  box-shadow: 0 3px 12px rgba(24, 53, 34, 0.12) !important;
+}
+
+.gis-map .leaflet-control-zoom a {
+  width: 34px !important;
+  height: 34px !important;
+  line-height: 34px !important;
+  color: var(--gis-primary-dark) !important;
+  background: #fff !important;
+}
+
+.gis-map .leaflet-control-zoom a:hover {
+  background: #edf5ec !important;
+}
+
+/* Map popups */
+.gis-map .leaflet-popup-content-wrapper {
+  border-radius: 12px;
+  box-shadow: 0 5px 20px rgba(20, 48, 29, 0.13);
+}
+
+.gis-map .leaflet-popup-content {
+  margin: 14px 16px;
+  color: var(--gis-text);
+  font-family: inherit;
+  line-height: 1.6;
+}
+
+.gis-map .leaflet-tooltip {
+  padding: 6px 10px;
+  color: var(--gis-text);
+  background: #fff;
+  border: 1px solid var(--gis-border);
+  border-radius: 8px;
+  box-shadow: var(--gis-shadow);
+  font-family: inherit;
+  font-weight: 650;
+}
+
+/* Boundary drawing panel */
+.gis-drawing-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid var(--gis-border);
+  border-radius: var(--gis-radius);
+  box-shadow: var(--gis-shadow);
+}
+
+/* Save plot form */
+.gis-save-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 14px;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid var(--gis-border);
+  border-radius: var(--gis-radius);
+  box-shadow: var(--gis-shadow);
+}
+
+.gis-save-form .gis-field {
+  min-width: 150px;
+}
+
+/* =========================================
+   FARM STATISTICS
+   Extra gap between Plots and Total area
+   ========================================= */
+
+.gis-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  /* Space BETWEEN the two statistic cards */
+  gap: 20px;
+}
+
+.gis-stats > * {
+  min-width: 0;
+
+  /* Space INSIDE each statistic card */
+  padding: 20px 22px;
+
+  background: var(--gis-surface);
+  border: 1px solid var(--gis-border);
+  border-radius: var(--gis-radius);
+  box-shadow: var(--gis-shadow);
+  transition: box-shadow 180ms ease, transform 180ms ease;
+}
+
+.gis-stats > *:hover {
+  box-shadow: 0 7px 22px rgba(29, 65, 42, 0.09);
+  transform: translateY(-2px);
+}
+
+.gis-stats small {
+  display: block;
+  margin-bottom: 12px;
+  color: var(--gis-muted);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.gis-stats strong,
+.gis-stats b {
+  display: block;
+  margin-top: 4px;
+  color: var(--gis-text);
+  font-size: 25px;
+  font-weight: 750;
+  letter-spacing: -0.04em;
+  line-height: 1.4;
+}
+
+/* Plot list */
+.gis-plot-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.gis-plot-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid var(--gis-border);
+  border-radius: 13px;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease;
+}
+
+.gis-plot-item:hover {
+  background: #fbfdf9;
+  border-color: #b7d1ba;
+  box-shadow: 0 3px 12px rgba(29, 65, 42, 0.05);
+}
+
+.gis-plot-item.active,
+.gis-plot-item[aria-selected="true"] {
+  background: #f0f8f0;
+  border-color: var(--gis-primary);
+}
+
+.gis-plot-item > * {
+  min-width: 0;
+}
+
+.gis-plot-item strong {
+  display: block;
+  color: var(--gis-text);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.gis-plot-item small {
+  display: block;
+  margin-top: 4px;
+  color: var(--gis-muted);
+  font-size: 12px;
+}
+
+/* Crop legend */
+.gis-legend {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.gis-legend > * {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  padding: 14px;
+  background: #fff;
+  border: 1px solid var(--gis-border);
+  border-radius: 11px;
+}
+
+.gis-legend strong {
+  margin-left: auto;
+  color: var(--gis-text);
+  font-size: 16px;
+}
+
+.gis-legend small {
+  color: var(--gis-muted);
+  font-size: 12px;
+}
+
+.gis-legend .rice,
+.gis-legend .wheat,
+.gis-legend .cotton,
+.gis-legend .maize {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.gis-legend .rice {
+  background: var(--gis-rice);
+}
+
+.gis-legend .wheat {
+  background: var(--gis-wheat);
+}
+
+.gis-legend .cotton {
+  background: var(--gis-cotton);
+}
+
+.gis-legend .maize {
+  background: var(--gis-maize);
+}
+
+/* Selected plot details */
+.gis-detail-panel {
+  padding: 20px;
+  background: #fff;
+  border: 1px solid var(--gis-border);
+  border-radius: var(--gis-radius);
+  box-shadow: var(--gis-shadow);
+}
+
+.gis-detail-panel p {
+  margin: 7px 0;
+  font-size: 13px;
+}
+
+.gis-detail-panel strong {
+  color: var(--gis-text);
+}
+
+/* Optional reusable helpers */
+.gis-card-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.gis-card-heading h2,
+.gis-card-heading h3 {
+  margin-bottom: 0;
+}
+
+.gis-muted {
+  color: var(--gis-muted);
+}
+
+.gis-divider {
+  height: 1px;
+  margin: 16px 0;
+  background: var(--gis-border);
+}
+
+/* =========================================
+   RESPONSIVE DESIGN
+   ========================================= */
+
+@media (max-width: 1100px) {
+  .gis-page {
+    padding: 20px;
+  }
+
+  .gis-layout {
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 18px;
+  }
+
+  .gis-map-frame {
+    height: 500px;
+  }
+
+  .gis-stats {
+    gap: 16px;
+  }
+}
+
+@media (max-width: 820px) {
+  .gis-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .gis-sidebar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    gap: 16px;
+  }
+
+  .gis-map-frame {
+    height: 450px;
+  }
+}
+
+@media (max-width: 560px) {
+  .gis-page {
+    padding: 14px;
+  }
+
+  .gis-layout {
+    gap: 16px;
+  }
+
+  .gis-sidebar {
+    display: flex;
+    gap: 16px;
+  }
+
+  .gis-toolbar,
+  .gis-drawing-panel,
+  .gis-save-form {
+    padding: 14px;
+    gap: 12px;
+  }
+
+  .gis-field {
+    min-width: 100%;
+  }
+
+  .gis-button {
+    flex: 1;
+  }
+
+  .gis-map-frame {
+    height: 380px;
+    min-height: 300px;
+    border-radius: 12px;
+  }
+
+  .gis-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .gis-stats > * {
+    padding: 16px 14px;
+  }
+
+  .gis-stats small {
+    margin-bottom: 10px;
+    font-size: 12px;
+  }
+
+  .gis-stats strong,
+  .gis-stats b {
+    font-size: 22px;
+  }
+
+  .gis-legend {
+    gap: 8px;
+  }
+
+  .gis-legend > * {
+    padding: 11px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gis-page *,
+  .gis-page *::before,
+  .gis-page *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
