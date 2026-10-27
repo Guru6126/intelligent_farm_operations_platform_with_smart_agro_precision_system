@@ -3,7 +3,7 @@ import { lazy, Suspense } from "react";
 import { Map as MapIcon } from "lucide-react";
 import { PageHeader } from "@/components/AppShell";
 
-const FarmMap = lazy(() => import("@/components/FarmMap"));
+const FarmMap = lazy(() => import("@/components/FarmMap-new"));
 
 export const Route = createFileRoute("/_authenticated/map")({
   head: () => ({ meta: [{ title: "GIS Map — AgroPrecision" }, { name: "description", content: "See farms on a map and draw plot boundaries." }] }),
