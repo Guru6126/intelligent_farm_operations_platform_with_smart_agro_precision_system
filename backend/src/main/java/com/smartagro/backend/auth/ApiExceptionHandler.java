@@ -11,6 +11,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.smartagro.backend.farm.DataApiException;
+
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestControllerAdvice
@@ -28,6 +30,13 @@ public class ApiExceptionHandler {
 			BadCredentialsException exception,
 			HttpServletRequest request) {
 		return error(HttpStatus.UNAUTHORIZED, exception.getMessage(), request.getRequestURI());
+	}
+
+	@ExceptionHandler(DataApiException.class)
+	public ResponseEntity<ApiError> handleDataApiException(
+			DataApiException exception,
+			HttpServletRequest request) {
+		return error(exception.getStatus(), exception.getMessage(), request.getRequestURI());
 	}
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)

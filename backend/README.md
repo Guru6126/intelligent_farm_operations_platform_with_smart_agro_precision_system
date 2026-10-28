@@ -44,6 +44,39 @@ Returns `200 OK` with the same response shape as registration. Invalid credentia
 
 Endpoints under `/api/admin/**` require an `ADMIN` role. Other API endpoints require a valid bearer token unless explicitly marked public. Input validation errors return `400 Bad Request`; duplicate email registration returns `409 Conflict`.
 
+## GIS farm mapping API
+
+The map UI uses the authenticated `/api/data/{table}` API. Farm reads are limited to farms owned by the signed-in user; administrators can read all farms. Creating plots and crops requires ownership of the associated farm (or the `ADMIN` role).
+
+Supported GIS tables are `farms`, `plots`, and `crops`:
+
+- `GET /api/data/farms`
+- `GET /api/data/plots?farmId={farmId}`
+- `GET /api/data/crops?farmId={farmId}`
+- `POST /api/data/farms`
+- `POST /api/data/plots`
+- `POST /api/data/crops`
+
+List requests accept optional `orderBy` (`created_at` or `name`), `ascending` (default `false`), and `limit` (maximum `5000`) query parameters. Farm, plot, and crop IDs are numeric. Plot boundaries are stored and returned as GeoJSON `Polygon` objects using `[longitude, latitude]` coordinates.
+
+Example plot request:
+
+```json
+{
+  "farm_id": 1,
+  "name": "North Field",
+  "area_acres": 2.4,
+  "soil_ph": 6.5,
+  "soil_type": "Red Sandy Soil",
+  "boundary_geojson": {
+    "type": "Polygon",
+    "coordinates": [[[79.0, 16.0], [79.01, 16.0], [79.01, 16.01], [79.0, 16.01], [79.0, 16.0]]]
+  }
+}
+```
+
+Use the returned plot list to obtain the created plot ID before posting its crop record. Unknown table names return `404`; invalid field values return `400`; cross-farm access returns `403`.
+
 ## Verification
 
-From the `backend` directory, run `mvn test`. The auth API tests use an in-memory H2 database and do not require a local MySQL server.
+From the `backend` directory, run `mvn test`. The API tests use an in-memory H2 database and do not require a local MySQL server.
