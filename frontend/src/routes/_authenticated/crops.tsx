@@ -12,7 +12,7 @@ export const Route = createFileRoute("/_authenticated/crops")({
 
 export const STAGES = ["planned", "sown", "vegetative", "flowering", "harvest_ready", "harvested"];
 
-const cropCfg: ResourceConfig<Crop> = {
+export const cropCfg: ResourceConfig<Crop> = {
   table: "crops", title: "Crop plans", singular: "Crop",
   fields: [
     { key: "crop_name", label: "Crop", required: true },
