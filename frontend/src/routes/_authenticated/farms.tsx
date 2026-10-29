@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   Clock,
   Compass,
+  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader, StatCard } from "@/components/AppShell";
@@ -95,8 +96,8 @@ function PlotCropBadge({ plotId }: { plotId: string }) {
               c.stage === "harvested"
                 ? "muted"
                 : c.stage === "flowering" || c.stage === "harvest_ready"
-                ? "warn"
-                : "good"
+                  ? "warn"
+                  : "good"
             }
           />
         </div>
@@ -155,9 +156,25 @@ const plotCfg: ResourceConfig<Plot> = {
       label: "Boundary",
       render: (r) =>
         r.boundary_geojson ? (
-          <StatusPill value="mapped" tone="good" />
+          <Link
+            to="/map"
+            className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400 hover:underline"
+            title="View plot boundary on GIS Map"
+          >
+            <StatusPill value="mapped" tone="good" />
+            <ArrowUpRight className="size-3" />
+          </Link>
         ) : (
-          <StatusPill value="not mapped" />
+          <Link
+            to="/map"
+            className="inline-flex items-center gap-1.5 group"
+            title="Click to plot and mark boundary directly on map"
+          >
+            <StatusPill value="not mapped" tone="warn" />
+            <span className="inline-flex items-center gap-0.5 text-xs font-medium text-primary group-hover:underline">
+              <Compass className="size-3" /> Mark on Map <ArrowUpRight className="size-3" />
+            </span>
+          </Link>
         ),
     },
   ],
@@ -310,7 +327,7 @@ function FarmsPage() {
             </TabsTrigger>
             <TabsTrigger value="farms" className="gap-2">
               <Leaf className="size-4" />
-              <span>Farms Table</span>
+              <span>Farms</span>
             </TabsTrigger>
           </TabsList>
 
@@ -453,8 +470,8 @@ function PlotCropGrid({
                             activeCrop.stage === "harvested"
                               ? "muted"
                               : activeCrop.stage === "flowering" || activeCrop.stage === "harvest_ready"
-                              ? "warn"
-                              : "good"
+                                ? "warn"
+                                : "good"
                           }
                         />
                       </div>
@@ -477,11 +494,10 @@ function PlotCropGrid({
                             return (
                               <li key={s} className="flex-1">
                                 <div
-                                  className={`h-1.5 rounded-full transition-all duration-500 ${
-                                    isCompleted
+                                  className={`h-1.5 rounded-full transition-all duration-500 ${isCompleted
                                       ? isCurrent
                                       : "bg-muted"
-                                  } ${isCompleted ? "bg-primary" : ""}`}
+                                    } ${isCompleted ? "bg-primary" : ""}`}
                                   title={s.replace(/_/g, " ")}
                                 />
                               </li>
@@ -524,21 +540,41 @@ function PlotCropGrid({
               </div>
 
               {/* Bottom Details: GIS Boundary & Link */}
-              <div className="mt-3 flex items-center justify-between text-xs pt-2">
-                <span className="flex items-center gap-1 text-muted-foreground">
-                  <CheckCircle2
-                    className={`size-3.5 ${
-                      plot.boundary_geojson ? "text-primary" : "text-muted-foreground/40"
-                    }`}
-                  />
-                  {plot.boundary_geojson ? "GIS Mapped" : "Boundary pending"}
+              <div className="mt-3 flex items-center justify-between text-xs pt-2.5 border-t border-border/50">
+                <span className="flex items-center gap-1.5">
+                  {plot.boundary_geojson ? (
+                    <span className="inline-flex items-center gap-1 font-medium text-emerald-600 dark:text-emerald-400">
+                      <CheckCircle2 className="size-3.5" />
+                      GIS Mapped
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 font-medium text-amber-600 dark:text-amber-500">
+                      <AlertCircle className="size-3.5" />
+                      Boundary pending
+                    </span>
+                  )}
                 </span>
-                <Link
-                  to="/map"
-                  className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
-                >
-                  View on Map <ArrowUpRight className="size-3" />
-                </Link>
+                {plot.boundary_geojson ? (
+                  <Button asChild size="sm" variant="ghost" className="h-7 px-2 text-xs text-primary hover:text-primary gap-1 font-medium">
+                    <Link to="/map">
+                      View on Map <ArrowUpRight className="size-3" />
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button
+                    asChild
+                    size="sm"
+                    className="h-7 px-2.5 text-xs gap-1.5 font-medium bg-primary text-primary-foreground hover:bg-primary/90 shadow-xs"
+                  >
+                    <Link
+                      to="/map"
+                      title={`Mark boundary on map for ${plot.name} (${farm?.name ?? "Farm"})`}
+                    >
+                      <Compass className="size-3.5" />
+                      Mark Boundary <ArrowUpRight className="size-3" />
+                    </Link>
+                  </Button>
+                )}
               </div>
             </div>
           );
