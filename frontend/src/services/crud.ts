@@ -15,12 +15,12 @@ export async function listRows<T>(table: string, opts: ListOpts = {}): Promise<T
   });
 }
 
-export async function insertRow(table: string, values: Record<string, unknown>) {
-  await api(`/api/data/${table}`, { method: "POST", body: values });
+export async function insertRow<T = Record<string, unknown>>(table: string, values: Record<string, unknown>): Promise<T> {
+  return api<T>(`/api/data/${table}`, { method: "POST", body: values });
 }
 
-export async function updateRow(table: string, id: string, values: Record<string, unknown>) {
-  await api(`/api/data/${table}/${id}`, { method: "PUT", body: values });
+export async function updateRow<T = Record<string, unknown>>(table: string, id: string, values: Record<string, unknown>): Promise<T> {
+  return api<T>(`/api/data/${table}/${id}`, { method: "PUT", body: values });
 }
 
 export async function deleteRow(table: string, id: string) {

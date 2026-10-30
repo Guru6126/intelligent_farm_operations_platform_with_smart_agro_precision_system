@@ -30,6 +30,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiMessage> integrity(DataIntegrityViolationException e) {
         String m = e.getMostSpecificCause().getMessage();
         String msg = m != null && m.contains("Duplicate") ? "That record already exists." : "Invalid data: please check required fields and linked records.";
+        if (m != null && (m.contains("uq_farm_plot_name") || (m.contains("Duplicate") && m.toLowerCase().contains("plot")))) {
+            msg = "A plot with this name already exists on this farm. Duplication of plots is not allowed.";
+        }
         return ResponseEntity.badRequest().body(new ApiMessage(msg));
     }
 

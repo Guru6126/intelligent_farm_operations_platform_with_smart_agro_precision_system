@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Tractor,
@@ -131,6 +131,22 @@ const plotCfg: ResourceConfig<Plot> = {
   table: "plots",
   title: "Plots & Assigned Crops",
   singular: "Plot",
+  validate: (values, existingPlots) => {
+    const name = String(values.name ?? "").trim();
+    if (!name) return "Plot name is required.";
+    const farmId = String(values.farm_id ?? "");
+    if (!farmId) return "Please choose a farm.";
+    const isDuplicate = existingPlots.some(
+      (p) =>
+        String(p.farm_id) === farmId &&
+        p.name.trim().toLowerCase() === name.toLowerCase() &&
+        p.id !== values.id,
+    );
+    if (isDuplicate) {
+      return `A plot named "${name}" already exists on this farm. Duplication of plots is not allowed.`;
+    }
+    return null;
+  },
   fields: [
     { key: "name", label: "Plot name", required: true },
     { key: "area_acres", label: "Area (acres)", type: "number" },
@@ -185,9 +201,28 @@ function FarmsPage() {
   const { data: plots = [] } = useRows<Plot>("plots");
   const { data: crops = [] } = useRows<Crop>("crops");
 
+  // Deduplicate plots defensively by farm_id and name (preferring mapped boundaries / assigned crops)
+  const uniquePlots = useMemo(() => {
+    const map = new Map<string, Plot>();
+    for (const p of plots) {
+      const key = `${p.farm_id}:${p.name.trim().toLowerCase()}`;
+      const existing = map.get(key);
+      if (!existing) {
+        map.set(key, p);
+      } else {
+        const pScore = (p.boundary_geojson ? 2 : 0) + (crops.some((c) => c.plot_id === p.id) ? 1 : 0);
+        const exScore = (existing.boundary_geojson ? 2 : 0) + (crops.some((c) => c.plot_id === existing.id) ? 1 : 0);
+        if (pScore > exScore) {
+          map.set(key, p);
+        }
+      }
+    }
+    return Array.from(map.values());
+  }, [plots, crops]);
+
   // Summary computations
-  const totalPlotAcres = plots.reduce((acc, p) => acc + Number(p.area_acres ?? 0), 0);
-  const plotsWithCrops = plots.filter((p) => crops.some((c) => c.plot_id === p.id && c.stage !== "harvested"));
+  const totalPlotAcres = uniquePlots.reduce((acc, p) => acc + Number(p.area_acres ?? 0), 0);
+  const plotsWithCrops = uniquePlots.filter((p) => crops.some((c) => c.plot_id === p.id && c.stage !== "harvested"));
   const activeCrops = crops.filter((c) => c.stage !== "harvested");
   const uniqueCropNames = Array.from(new Set(activeCrops.map((c) => c.crop_name)));
 
@@ -214,7 +249,7 @@ function FarmsPage() {
         <StatCard
           icon={Layers}
           label="Total Plots"
-          value={plots.length}
+          value={uniquePlots.length}
           hint={`${totalPlotAcres.toFixed(1)} acres divided`}
           delay={60}
         />
@@ -223,8 +258,8 @@ function FarmsPage() {
           label="Cultivated Plots"
           value={plotsWithCrops.length}
           hint={
-            plots.length > 0
-              ? `${Math.round((plotsWithCrops.length / plots.length) * 100)}% plots cultivated`
+            uniquePlots.length > 0
+              ? `${Math.round((plotsWithCrops.length / uniquePlots.length) * 100)}% plots cultivated`
               : "No plots registered"
           }
           delay={120}
@@ -247,7 +282,7 @@ function FarmsPage() {
         </div>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {farms.map((f, i) => {
-            const farmPlots = plots.filter((p) => p.farm_id === f.id);
+            const farmPlots = uniquePlots.filter((p) => p.farm_id === f.id);
             const farmCrops = crops.filter((c) => c.farm_id === f.id && c.stage !== "harvested");
             return (
               <div
@@ -315,7 +350,7 @@ function FarmsPage() {
               <Tractor className="size-4" />
               <span>Plots & Cultivation</span>
               <span className="rounded-full bg-primary/10 text-primary px-1.5 py-0.2 text-[11px] font-mono">
-                {plots.length}
+                {uniquePlots.length}
               </span>
             </TabsTrigger>
             <TabsTrigger value="crops" className="gap-2">
@@ -349,7 +384,7 @@ function FarmsPage() {
 
         {/* Tab 1: Plots & Cultivated Crops Visual Cards + Table */}
         <TabsContent value="plots" className="space-y-6">
-          <PlotCropGrid plots={plots} crops={crops} farms={farms} />
+          <PlotCropGrid plots={uniquePlots} crops={crops} farms={farms} />
           <ResourceTable config={plotCfg} />
         </TabsContent>
 

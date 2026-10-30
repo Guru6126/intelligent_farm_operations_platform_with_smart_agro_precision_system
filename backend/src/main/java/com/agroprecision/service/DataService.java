@@ -82,6 +82,22 @@ public class DataService {
                 v.remove("is_demo");
             }
             case "notifications" -> v.put("user_id", u.id());
+            case "plots" -> {
+                String farmId = str(v.get("farm_id"));
+                if (farmId == null || farmId.isBlank()) throw ApiException.bad("Please choose a farm.");
+                access.requireManage(u, farmId);
+                String name = str(v.get("name"));
+                if (name == null || name.trim().isBlank()) throw ApiException.bad("Plot name is required.");
+                name = name.trim();
+                v.put("name", name);
+                Integer count = db.queryForObject(
+                    "SELECT COUNT(*) FROM plots WHERE farm_id = ? AND LOWER(TRIM(name)) = LOWER(?)",
+                    Integer.class, farmId, name
+                );
+                if (count != null && count > 0) {
+                    throw ApiException.bad("A plot named '" + name + "' already exists on this farm. Duplication of plots is not allowed.");
+                }
+            }
             default -> {
                 String farmId = str(v.get("farm_id"));
                 if (farmId == null) throw ApiException.bad("Please choose a farm.");
@@ -129,6 +145,22 @@ public class DataService {
                 }
                 if (v.containsKey("farm_id") && !Objects.equals(str(v.get("farm_id")), farmId))
                     access.requireManage(u, str(v.get("farm_id")));
+            }
+        }
+        if (table.equals("plots")) {
+            String farmId = v.containsKey("farm_id") ? str(v.get("farm_id")) : str(existing.get("farm_id"));
+            String name = v.containsKey("name") ? str(v.get("name")) : str(existing.get("name"));
+            if (name == null || name.trim().isBlank()) {
+                throw ApiException.bad("Plot name cannot be empty.");
+            }
+            name = name.trim();
+            v.put("name", name);
+            Integer count = db.queryForObject(
+                "SELECT COUNT(*) FROM plots WHERE farm_id = ? AND LOWER(TRIM(name)) = LOWER(?) AND id != ?",
+                Integer.class, farmId, name, id
+            );
+            if (count != null && count > 0) {
+                throw ApiException.bad("A plot named '" + name + "' already exists on this farm. Duplication of plots is not allowed.");
             }
         }
         if (table.equals("equipment_bookings")) {

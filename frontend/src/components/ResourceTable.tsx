@@ -1,6 +1,6 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Pencil, Plus, Trash2, Download } from "lucide-react";
+import { Pencil, Plus, Trash2, Download, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -37,6 +37,7 @@ export interface ResourceConfig<T> {
   writeAccess?: "manage" | "all"; // "all": field workers can add too
   allowEdit?: boolean;
   allowDelete?: boolean;
+  validate?: (values: Record<string, unknown>, rows: T[]) => string | null | undefined;
 }
 
 type Row = Record<string, unknown> & { id: string };
@@ -173,7 +174,7 @@ export function ResourceTable<T extends Row>({ config, children }: { config: Res
         </table>
       </div>
       {editing && (
-        <RecordDialog config={config} initial={editing} onClose={() => setEditing(null)} saving={save.isPending} onSave={(v) => save.mutate(v)} />
+        <RecordDialog config={config} initial={editing} existingRows={rows} onClose={() => setEditing(null)} saving={save.isPending} onSave={(v) => save.mutate(v)} />
       )}
     </section>
   );
@@ -187,9 +188,10 @@ function fmt(v: unknown) {
   return s.replace(/_/g, " ");
 }
 
-function RecordDialog<T>({ config, initial, onClose, onSave, saving }: {
-  config: ResourceConfig<T>; initial: Partial<Row>; onClose: () => void; onSave: (v: Record<string, unknown>) => void; saving: boolean;
+function RecordDialog<T extends Row>({ config, initial, existingRows, onClose, onSave, saving }: {
+  config: ResourceConfig<T>; initial: Partial<Row>; existingRows: T[]; onClose: () => void; onSave: (v: Record<string, unknown>) => void; saving: boolean;
 }) {
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const { farms } = useFarm();
   const farmScoped = config.farmScoped ?? true;
   const [values, setValues] = useState<Record<string, unknown>>(() => {
@@ -212,21 +214,31 @@ function RecordDialog<T>({ config, initial, onClose, onSave, saving }: {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMsg(null);
     const out: Record<string, unknown> = {};
     if (values.id) out.id = values.id;
     if (farmScoped) out.farm_id = values.farm_id;
     for (const f of config.fields) {
       let v = values[f.key];
+      if (typeof v === "string") v = v.trim();
       if (v === "" || v === undefined) v = null;
       if (f.type === "number" && v !== null) v = Number(v);
       if (f.type === "datetime" && v) v = new Date(String(v)).toISOString();
       if (v === null && !values.id) continue; // let DB defaults apply on insert
       out[f.key] = v;
     }
+    if (config.validate) {
+      const err = config.validate(out, existingRows);
+      if (err) {
+        setErrorMsg(err);
+        toast.error(err);
+        return;
+      }
+    }
     onSave(out);
   };
 
-  const set = (k: string, v: unknown) => setValues((s) => ({ ...s, [k]: v }));
+  const set = (k: string, v: unknown) => { setErrorMsg(null); setValues((s) => ({ ...s, [k]: v })); };
   const fieldCls = "h-10 w-full rounded-lg border border-input bg-card px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
   const title = useMemo(() => `${values.id ? "Edit" : "New"} ${config.singular.toLowerCase()}`, [values.id, config.singular]);
 
@@ -235,6 +247,12 @@ function RecordDialog<T>({ config, initial, onClose, onSave, saving }: {
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader><DialogTitle className="font-display">{title}</DialogTitle></DialogHeader>
         <form onSubmit={submit} className="grid gap-4">
+          {errorMsg && (
+            <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive-soft p-3 text-xs text-destructive">
+              <AlertCircle className="size-4 shrink-0" />
+              <span>{errorMsg}</span>
+            </div>
+          )}
           {farmScoped && !values.id && (
             <div className="grid gap-1.5">
               <Label>Farm</Label>
@@ -272,7 +290,7 @@ function RecordDialog<T>({ config, initial, onClose, onSave, saving }: {
           })}
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-            <Button type="submit" loading={saving}>Save</Button>
+            <Button type="submit" loading={saving} disabled={saving}>Save</Button>
           </DialogFooter>
         </form>
       </DialogContent>

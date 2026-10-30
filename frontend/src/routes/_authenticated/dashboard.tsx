@@ -44,7 +44,18 @@ function Dashboard() {
   const openTasks = tasks.filter((t) => t.status !== "done");
   const upcoming = irr.filter((i) => i.status === "upcoming" || i.status === "active").sort((a, b) => a.scheduled_at.localeCompare(b.scheduled_at));
   const totalSpend = exp.reduce((s, e) => s + Number(e.amount), 0);
-  const acres = plots.reduce((s, p) => s + Number(p.area_acres ?? 0), 0);
+  const uniquePlots = useMemo(() => {
+    const map = new Map<string, Plot>();
+    for (const p of plots) {
+      const key = `${p.farm_id}:${p.name.trim().toLowerCase()}`;
+      const existing = map.get(key);
+      if (!existing || (p.boundary_geojson && !existing.boundary_geojson)) {
+        map.set(key, p);
+      }
+    }
+    return Array.from(map.values());
+  }, [plots]);
+  const acres = uniquePlots.reduce((s, p) => s + Number(p.area_acres ?? 0), 0);
 
   const byCat = Object.entries(exp.reduce<Record<string, number>>((m, e) => ((m[e.category] = (m[e.category] ?? 0) + Number(e.amount)), m), {}))
     .map(([category, amount]) => ({ category, amount }));
@@ -75,7 +86,7 @@ function Dashboard() {
       )}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard icon={Tractor} label="Plots" value={<Num v={plots.length} />} hint={`${acres.toFixed(1)} acres mapped`} delay={0} />
+        <StatCard icon={Tractor} label="Plots" value={<Num v={uniquePlots.length} />} hint={`${acres.toFixed(1)} acres mapped`} delay={0} />
         <StatCard icon={Sprout} label="Active crops" value={<Num v={activeCrops.length} />} hint={`${crops.length} total plans`} delay={60} />
         <StatCard icon={Package} label="Low stock" value={<Num v={lowStock.length} />} hint={lowStock.map((l) => l.name).join(", ") || "All items healthy"} delay={120} tone={lowStock.length ? "warn" : undefined} />
         <StatCard icon={Wallet} label="Total spend" value={<Num v={totalSpend} prefix="₹" />} hint={`${exp.length} expense records`} delay={180} />

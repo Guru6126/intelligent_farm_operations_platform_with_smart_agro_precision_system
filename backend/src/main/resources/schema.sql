@@ -50,6 +50,7 @@ CREATE TABLE IF NOT EXISTS plots (
   soil_ph DECIMAL(4,2),
   boundary_geojson JSON,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_farm_plot_name (farm_id, name),
   CONSTRAINT fk_plot_farm FOREIGN KEY (farm_id) REFERENCES farms(id) ON DELETE CASCADE
 );
 

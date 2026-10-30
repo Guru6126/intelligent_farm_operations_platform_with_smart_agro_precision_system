@@ -120,10 +120,18 @@ export default function FarmMap() {
 
   const selectedFarm = farms.find((farm) => String(farm.id) === farmId) ?? currentFarm ?? farms[0];
 
-  const farmPlots = useMemo(
-    () => plots.filter((plot) => !farmId || String(plot.farm_id) === farmId),
-    [plots, farmId],
-  );
+  const farmPlots = useMemo(() => {
+    const filtered = plots.filter((plot) => !farmId || String(plot.farm_id) === farmId);
+    const map = new Map<string, Plot>();
+    for (const p of filtered) {
+      const key = `${p.farm_id}:${p.name.trim().toLowerCase()}`;
+      const existing = map.get(key);
+      if (!existing || (p.boundary_geojson && !existing.boundary_geojson)) {
+        map.set(key, p);
+      }
+    }
+    return Array.from(map.values());
+  }, [plots, farmId]);
 
   const locatedFarms = useMemo(
     () =>
@@ -160,8 +168,20 @@ export default function FarmMap() {
         throw new Error("Mark exactly four boundary points.");
       }
 
-      if (!plotName.trim()) {
+      const trimmedName = plotName.trim();
+      if (!trimmedName) {
         throw new Error("Enter a plot name.");
+      }
+
+      const duplicate = plots.some(
+        (p) =>
+          String(p.farm_id) === String(selectedFarm.id) &&
+          p.name.trim().toLowerCase() === trimmedName.toLowerCase(),
+      );
+      if (duplicate) {
+        throw new Error(
+          `A plot named "${trimmedName}" already exists on ${selectedFarm.name}. Duplication of plots is not allowed.`,
+        );
       }
 
       const pH = Number(soilPH);
@@ -178,34 +198,23 @@ export default function FarmMap() {
         coordinates: [ring],
       };
 
-      await insertRow("plots", {
+      const createdPlot = await insertRow<Plot>("plots", {
         farm_id: selectedFarm.id,
-        name: plotName.trim(),
+        name: trimmedName,
         area_acres: Number(areaAcres.toFixed(4)),
         soil_ph: pH,
         soil_type: soilType,
         boundary_geojson: boundary,
       });
 
-      const refreshedPlots = await listRows<Plot>("plots", {
-        farmId: String(selectedFarm.id),
-      });
-
-      // Match by farm and name. If your API supports duplicate names,
-      // use the created record ID from the API instead.
-      const createdPlot = refreshedPlots.find(
-        (plot) => String(plot.farm_id) === String(selectedFarm.id) && plot.name === plotName.trim(),
-      );
-
-      if (!createdPlot) {
-        throw new Error(
-          "The plot may have been saved, but its ID could not be retrieved. Check the Plots page before retrying.",
-        );
+      const plotId = createdPlot?.id;
+      if (!plotId) {
+        throw new Error("Plot created, but its ID was missing.");
       }
 
       await insertRow("crops", {
         farm_id: selectedFarm.id,
-        plot_id: createdPlot.id,
+        plot_id: plotId,
         crop_name: cropName,
         variety: null,
         season: null,
