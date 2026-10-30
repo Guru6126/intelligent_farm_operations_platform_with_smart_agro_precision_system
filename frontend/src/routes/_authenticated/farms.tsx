@@ -205,7 +205,7 @@ function FarmsPage() {
   const uniquePlots = useMemo(() => {
     const map = new Map<string, Plot>();
     for (const p of plots) {
-      const key = `${p.farm_id}:${p.name.trim().toLowerCase()}`;
+      const key = `${p.farm_id}:${String(p.name ?? "").trim().toLowerCase()}`;
       const existing = map.get(key);
       if (!existing) {
         map.set(key, p);

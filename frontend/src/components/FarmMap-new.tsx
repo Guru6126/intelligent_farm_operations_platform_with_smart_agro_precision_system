@@ -124,7 +124,7 @@ export default function FarmMap() {
     const filtered = plots.filter((plot) => !farmId || String(plot.farm_id) === farmId);
     const map = new Map<string, Plot>();
     for (const p of filtered) {
-      const key = `${p.farm_id}:${p.name.trim().toLowerCase()}`;
+      const key = `${p.farm_id}:${String(p.name ?? "").trim().toLowerCase()}`;
       const existing = map.get(key);
       if (!existing || (p.boundary_geojson && !existing.boundary_geojson)) {
         map.set(key, p);

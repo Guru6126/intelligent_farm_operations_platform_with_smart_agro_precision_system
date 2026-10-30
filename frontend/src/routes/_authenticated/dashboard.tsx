@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -47,7 +48,7 @@ function Dashboard() {
   const uniquePlots = useMemo(() => {
     const map = new Map<string, Plot>();
     for (const p of plots) {
-      const key = `${p.farm_id}:${p.name.trim().toLowerCase()}`;
+      const key = `${p.farm_id}:${String(p.name ?? "").trim().toLowerCase()}`;
       const existing = map.get(key);
       if (!existing || (p.boundary_geojson && !existing.boundary_geojson)) {
         map.set(key, p);
@@ -55,7 +56,7 @@ function Dashboard() {
     }
     return Array.from(map.values());
   }, [plots]);
-  const acres = uniquePlots.reduce((s, p) => s + Number(p.area_acres ?? 0), 0);
+  const acres = uniquePlots.reduce((s: number, p: Plot) => s + Number(p.area_acres ?? 0), 0);
 
   const byCat = Object.entries(exp.reduce<Record<string, number>>((m, e) => ((m[e.category] = (m[e.category] ?? 0) + Number(e.amount)), m), {}))
     .map(([category, amount]) => ({ category, amount }));
