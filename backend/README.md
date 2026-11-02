@@ -42,6 +42,22 @@ Returns `200 OK` with the same response shape as registration. Invalid credentia
 
 `GET /api/auth/me` requires `Authorization: Bearer <accessToken>` and returns the authenticated user's public details.
 
+### Reset password
+
+`POST /api/auth/forgot-password` accepts the account email and sends a one-time reset code to that user's registered email address. The response is the same whether or not the account exists.
+
+```json
+{"email":"owner@example.com"}
+```
+
+`POST /api/auth/reset-password` accepts the code received by email and a new password:
+
+```json
+{"token":"<code-from-email>","password":"NewFarmPass123!"}
+```
+
+Codes expire after 30 minutes, are stored as SHA-256 hashes, and can be used once. Configure SMTP before using this flow by setting `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, and `MAIL_FROM` as environment variables or in `backend/.env` (do not commit that file). STARTTLS and SMTP authentication are enabled by default and can be configured with `MAIL_SMTP_STARTTLS_ENABLE` and `MAIL_SMTP_AUTH`. If email delivery is not configured or fails, the API returns `503 Service Unavailable`; the reset code is never returned by the API or written to application logs.
+
 Endpoints under `/api/admin/**` require an `ADMIN` role. Other API endpoints require a valid bearer token unless explicitly marked public. Input validation errors return `400 Bad Request`; duplicate email registration returns `409 Conflict`.
 
 ## GIS farm mapping API

@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.MailException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -30,6 +31,13 @@ public class ApiExceptionHandler {
 			BadCredentialsException exception,
 			HttpServletRequest request) {
 		return error(HttpStatus.UNAUTHORIZED, exception.getMessage(), request.getRequestURI());
+	}
+
+	@ExceptionHandler(PasswordResetEmailUnavailableException.class)
+	public ResponseEntity<ApiError> handlePasswordResetEmailUnavailable(
+			PasswordResetEmailUnavailableException exception,
+			HttpServletRequest request) {
+		return error(HttpStatus.SERVICE_UNAVAILABLE, exception.getMessage(), request.getRequestURI());
 	}
 
 	@ExceptionHandler(DataApiException.class)
