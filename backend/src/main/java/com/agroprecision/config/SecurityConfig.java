@@ -35,7 +35,7 @@ public class SecurityConfig {
             .exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
             .authorizeHttpRequests(a -> a
                 .requestMatchers("/api/auth/login", "/api/auth/signup", "/api/auth/forgot-password",
-                                 "/api/auth/reset-password", "/api/health").permitAll()
+                                 "/api/auth/reset-password", "/api/health", "/api/invites/*").permitAll()
                 .anyRequest().authenticated())
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();

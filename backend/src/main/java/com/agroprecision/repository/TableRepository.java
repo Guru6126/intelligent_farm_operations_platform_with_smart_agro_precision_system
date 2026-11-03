@@ -79,6 +79,14 @@ public class TableRepository {
         db.update("DELETE FROM " + q(table) + " WHERE id = ?", id);
     }
 
+    public List<Map<String, Object>> query(String sql, List<Object> params) {
+        return db.queryForList(sql, params.toArray());
+    }
+
+    public void execute(String sql, List<Object> params) {
+        db.update(sql, params.toArray());
+    }
+
     /** Converts incoming JSON values to JDBC-friendly values by column type. */
     private Object in(String table, String col, Object v) {
         if (v == null) return null;

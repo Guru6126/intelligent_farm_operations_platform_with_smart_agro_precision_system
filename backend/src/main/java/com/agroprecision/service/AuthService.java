@@ -26,21 +26,26 @@ public class AuthService {
     private final PasswordEncoder encoder;
     private final JwtService jwt;
     private final String adminEmail;
+    private final InviteService inviteService;
 
     public AuthService(UserRepository users, PasswordEncoder encoder, JwtService jwt,
-                       @Value("${app.admin.email}") String adminEmail) {
+                       @Value("${app.admin.email}") String adminEmail,
+                       InviteService inviteService) {
         this.users = users;
         this.encoder = encoder;
         this.jwt = jwt;
         this.adminEmail = adminEmail == null ? "" : adminEmail.trim();
+        this.inviteService = inviteService;
     }
 
     @Transactional
     public TokenResponse signup(SignupRequest r) {
         String email = r.email().trim().toLowerCase();
         if (users.existsByEmailIgnoreCase(email)) throw ApiException.bad("An account with that email already exists.");
-        // Users may request farmer or field_worker only; admin is granted via ADMIN_EMAIL.
-        String role = "field_worker".equals(r.role()) ? "field_worker" : "farmer";
+
+        boolean hasInvite = r.inviteToken() != null && !r.inviteToken().isBlank();
+        String role = hasInvite ? "field_worker" : ("field_worker".equals(r.role()) ? "field_worker" : "farmer");
+
         User u = new User();
         u.setId(UUID.randomUUID().toString());
         u.setEmail(email);
@@ -50,6 +55,15 @@ public class AuthService {
         if (!adminEmail.isEmpty() && adminEmail.equalsIgnoreCase(email))
             u.getRoles().add(new UserRole(UUID.randomUUID().toString(), u, "admin"));
         users.save(u);
+
+        if (hasInvite) {
+            try {
+                inviteService.consumeInvite(r.inviteToken().trim(), u.getId());
+            } catch (Exception ex) {
+                log.warn("Failed to consume invite token on signup: {}", ex.getMessage());
+            }
+        }
+
         return new TokenResponse(jwt.issue(u.getId()));
     }
 

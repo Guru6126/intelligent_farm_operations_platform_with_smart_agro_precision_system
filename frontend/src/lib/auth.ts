@@ -24,12 +24,12 @@ export async function signIn(email: string, password: string) {
   setToken(r.token);
 }
 
-export async function signUp(body: { email: string; password: string; fullName: string; role: string }) {
+export async function signUp(body: { email: string; password: string; fullName: string; role?: string; inviteToken?: string }) {
   const r = await api<{ token: string }>("/api/auth/signup", { method: "POST", body });
   setToken(r.token);
 }
 
-export function signOut() {
+export async function signOut() {
   setToken(null);
 }
 

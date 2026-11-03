@@ -256,3 +256,17 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   record_id CHAR(36),
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+
+CREATE TABLE IF NOT EXISTS invite_tokens (
+  id CHAR(36) PRIMARY KEY,
+  token CHAR(64) NOT NULL UNIQUE,
+  farm_id CHAR(36) NOT NULL,
+  created_by CHAR(36) NOT NULL,
+  expires_at DATETIME NOT NULL,
+  used_at DATETIME,
+  used_by CHAR(36),
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_invite_farm FOREIGN KEY (farm_id) REFERENCES farms(id) ON DELETE CASCADE,
+  CONSTRAINT fk_invite_creator FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
+);

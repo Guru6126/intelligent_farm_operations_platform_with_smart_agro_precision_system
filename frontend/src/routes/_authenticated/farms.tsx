@@ -5,6 +5,9 @@ import {
   Tractor,
   Leaf,
   UserPlus,
+  Link2,
+  Copy,
+  Check,
   Sprout,
   Layers,
   Calendar,
@@ -25,6 +28,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFarm, type Farm } from "@/lib/farm-context";
 import { canManage } from "@/lib/auth";
 import { rpc } from "@/services/crud";
+import { api } from "@/lib/api";
 import type { Plot, Crop } from "@/lib/types";
 import { cropCfg, STAGES } from "./crops";
 
@@ -363,6 +367,9 @@ function FarmsPage() {
             <TabsTrigger value="farms" className="gap-2">
               <Leaf className="size-4" />
               <span>Farms</span>
+              <span className="rounded-full bg-primary/10 text-primary px-1.5 py-0.2 text-[11px] font-mono">
+                {farms.length}
+              </span>
             </TabsTrigger>
           </TabsList>
 
@@ -621,8 +628,11 @@ function PlotCropGrid({
 
 function AddMember({ farmId }: { farmId: string }) {
   const [email, setEmail] = useState("");
+  const [copied, setCopied] = useState(false);
+  const [inviteUrl, setInviteUrl] = useState<string | null>(null);
   const qc = useQueryClient();
-  const m = useMutation({
+
+  const addExisting = useMutation({
     mutationFn: () => rpc("add_farm_member_by_email", { _farm: farmId, _email: email }),
     onSuccess: () => {
       toast.success("Field worker added to farm");
@@ -632,26 +642,100 @@ function AddMember({ farmId }: { farmId: string }) {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const genInvite = useMutation({
+    mutationFn: () => api<{ token: string; inviteUrl: string }>("/api/invites", { method: "POST", body: { farmId } }),
+    onSuccess: (res) => {
+      // Use current window origin (e.g. http://localhost:8080) so invite link always matches current port
+      const url = typeof window !== "undefined"
+        ? `${window.location.origin}/auth?invite=${res.token}`
+        : res.inviteUrl;
+      setInviteUrl(url);
+      navigator.clipboard.writeText(url);
+      setCopied(true);
+      toast.success("Invite link generated & copied to clipboard!");
+      setTimeout(() => setCopied(false), 3000);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   return (
-    <form
-      className="mt-4 flex gap-2"
-      onSubmit={(e) => {
-        e.preventDefault();
-        m.mutate();
-      }}
-    >
-      <Input
-        type="email"
-        required
-        placeholder="worker@email.com"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        className="h-9"
-        aria-label="Field worker email"
-      />
-      <Button size="sm" variant="secondary" loading={m.isPending}>
-        <UserPlus /> Add
-      </Button>
-    </form>
+    <div className="mt-4 pt-3.5 border-t border-border/60 space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+          <UserPlus className="size-3.5 text-primary" /> Assign Field Worker
+        </span>
+      </div>
+
+      {/* Option 1: Add already registered worker */}
+      <form
+        className="flex flex-col sm:flex-row gap-2"
+        onSubmit={(e) => {
+          e.preventDefault();
+          addExisting.mutate();
+        }}
+      >
+        <Input
+          type="email"
+          required
+          placeholder="Existing user's email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="h-8 text-xs flex-1 bg-background"
+          aria-label="Field worker email"
+        />
+        <Button
+          type="submit"
+          size="sm"
+          variant="secondary"
+          className="h-8 px-3 text-xs font-semibold text-foreground shrink-0 border border-border"
+          loading={addExisting.isPending}
+        >
+          <UserPlus className="size-3.5 mr-1" /> Add Existing
+        </Button>
+      </form>
+
+      {/* Option 2: Generate link for new worker */}
+      <div className="rounded-lg bg-muted/40 p-2.5 border border-border/50 space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[11px] text-muted-foreground">Or invite a new worker via link:</span>
+          <Button
+            type="button"
+            size="sm"
+            variant="default"
+            className="h-7 px-2.5 text-xs font-medium gap-1 text-primary-foreground bg-primary hover:bg-primary/90 shrink-0"
+            loading={genInvite.isPending}
+            onClick={() => genInvite.mutate()}
+          >
+            {copied ? <Check className="size-3.5 text-lime" /> : <Link2 className="size-3.5" />}
+            {copied ? "Copied!" : "Generate Invite Link"}
+          </Button>
+        </div>
+
+        {inviteUrl && (
+          <div className="flex items-center gap-2 pt-1 border-t border-border/40">
+            <input
+              type="text"
+              readOnly
+              value={inviteUrl}
+              className="text-[11px] text-foreground font-mono bg-background border px-2 py-1 rounded w-full select-all"
+            />
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="h-7 px-2 text-xs shrink-0"
+              onClick={() => {
+                navigator.clipboard.writeText(inviteUrl);
+                setCopied(true);
+                toast.success("Copied to clipboard!");
+                setTimeout(() => setCopied(false), 2000);
+              }}
+            >
+              <Copy className="size-3" />
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
