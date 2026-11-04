@@ -1,98 +1,29 @@
-# Backend authentication
+# AgroPrecision backend
 
-## Local configuration
+The backend uses the configuration and application structure on the `dev` branch. Run it from this directory so Spring Boot can load the optional local `.env` file:
 
-The backend uses MySQL by default. Set `DB_URL`, `DB_USERNAME`, and `DB_PASSWORD` if your local connection differs from `jdbc:mysql://localhost:3306/smart_agro`.
-
-Set `JWT_SECRET` to a Base64-encoded random value containing at least 32 bytes. For example, generate one with:
-
-```sh
-openssl rand -base64 32
+```powershell
+.\mvnw.cmd spring-boot:run
 ```
 
-Do not use a development secret in production. `JWT_EXPIRATION` accepts a Java duration (default `PT1H`), and `CORS_ALLOWED_ORIGINS` accepts a comma-separated list of frontend origins (default `http://localhost:5173`).
+Run the backend tests with:
 
-## Authentication API
-
-All request and response bodies are JSON.
-
-`GET /` is a public status endpoint that confirms the API is running and lists the authentication routes. It does not serve the frontend application.
-
-### Register
-
-`POST /api/auth/register`
-
-```json
-{"name":"Farm Owner","email":"owner@example.com","password":"FarmPass123!"}
+```powershell
+.\mvnw.cmd test
 ```
 
-Returns `201 Created` with an access token and public user details. Public sign-up always creates a `FARMER`; clients cannot assign themselves `ADMIN`.
+## Password reset email
 
-### Log in
+Add SMTP settings to `backend/.env` or the process environment. The local `.env` file is ignored by Git.
 
-`POST /api/auth/login`
-
-```json
-{"email":"owner@example.com","password":"FarmPass123!"}
+```properties
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=your-address@gmail.com
+MAIL_PASSWORD=your-google-app-password
+MAIL_FROM=your-address@gmail.com
+MAIL_SMTP_AUTH=true
+MAIL_SMTP_STARTTLS_ENABLE=true
 ```
 
-Returns `200 OK` with the same response shape as registration. Invalid credentials return `401 Unauthorized`.
-
-### Current user
-
-`GET /api/auth/me` requires `Authorization: Bearer <accessToken>` and returns the authenticated user's public details.
-
-### Reset password
-
-`POST /api/auth/forgot-password` accepts the account email and sends a one-time reset code to that user's registered email address. The response is the same whether or not the account exists.
-
-```json
-{"email":"owner@example.com"}
-```
-
-`POST /api/auth/reset-password` accepts the code received by email and a new password:
-
-```json
-{"token":"<code-from-email>","password":"NewFarmPass123!"}
-```
-
-Codes expire after 30 minutes, are stored as SHA-256 hashes, and can be used once. Configure SMTP before using this flow by setting `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, and `MAIL_FROM` as environment variables or in `backend/.env` (do not commit that file). STARTTLS and SMTP authentication are enabled by default and can be configured with `MAIL_SMTP_STARTTLS_ENABLE` and `MAIL_SMTP_AUTH`. If email delivery is not configured or fails, the API returns `503 Service Unavailable`; the reset code is never returned by the API or written to application logs.
-
-Endpoints under `/api/admin/**` require an `ADMIN` role. Other API endpoints require a valid bearer token unless explicitly marked public. Input validation errors return `400 Bad Request`; duplicate email registration returns `409 Conflict`.
-
-## GIS farm mapping API
-
-The map UI uses the authenticated `/api/data/{table}` API. Farm reads are limited to farms owned by the signed-in user; administrators can read all farms. Creating plots and crops requires ownership of the associated farm (or the `ADMIN` role).
-
-Supported GIS tables are `farms`, `plots`, and `crops`:
-
-- `GET /api/data/farms`
-- `GET /api/data/plots?farmId={farmId}`
-- `GET /api/data/crops?farmId={farmId}`
-- `POST /api/data/farms`
-- `POST /api/data/plots`
-- `POST /api/data/crops`
-
-List requests accept optional `orderBy` (`created_at` or `name`), `ascending` (default `false`), and `limit` (maximum `5000`) query parameters. Farm, plot, and crop IDs are numeric. Plot boundaries are stored and returned as GeoJSON `Polygon` objects using `[longitude, latitude]` coordinates.
-
-Example plot request:
-
-```json
-{
-  "farm_id": 1,
-  "name": "North Field",
-  "area_acres": 2.4,
-  "soil_ph": 6.5,
-  "soil_type": "Red Sandy Soil",
-  "boundary_geojson": {
-    "type": "Polygon",
-    "coordinates": [[[79.0, 16.0], [79.01, 16.0], [79.01, 16.01], [79.0, 16.01], [79.0, 16.0]]]
-  }
-}
-```
-
-Use the returned plot list to obtain the created plot ID before posting its crop record. Unknown table names return `404`; invalid field values return `400`; cross-farm access returns `403`.
-
-## Verification
-
-From the `backend` directory, run `mvn test`. The API tests use an in-memory H2 database and do not require a local MySQL server.
+For Gmail, use a Google App Password (requires 2-Step Verification), not the regular account password. Never commit or share SMTP credentials. Restart the backend after changing the settings. Reset codes expire after 30 minutes, are stored as SHA-256 hashes, and are not logged or included in API responses. The reset endpoint returns `503 Service Unavailable` if email is not configured or delivery fails.
