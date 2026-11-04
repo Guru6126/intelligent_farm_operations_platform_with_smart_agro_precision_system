@@ -6,6 +6,8 @@ import com.agroprecision.entity.UserRole;
 import com.agroprecision.exception.ApiException;
 import com.agroprecision.repository.UserRepository;
 import com.agroprecision.security.JwtService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.mail.MailException;
@@ -25,6 +27,7 @@ import java.util.UUID;
 
 @Service
 public class AuthService {
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
     private final UserRepository users;
     private final PasswordEncoder encoder;

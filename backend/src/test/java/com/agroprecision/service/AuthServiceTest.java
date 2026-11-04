@@ -1,6 +1,7 @@
 package com.agroprecision.service;
 
 import com.agroprecision.dto.AuthDtos.ForgotRequest;
+import com.agroprecision.dto.AuthDtos.ResetRequest;
 import com.agroprecision.entity.User;
 import com.agroprecision.exception.ApiException;
 import com.agroprecision.repository.UserRepository;
@@ -15,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.time.LocalDateTime;
 import java.util.HexFormat;
 import java.util.Optional;
 
@@ -88,5 +90,23 @@ class AuthServiceTest {
         assertDoesNotThrow(() -> auth.forgot(new ForgotRequest("missing@example.com")));
 
         verify(mailSender, never()).send(any(SimpleMailMessage.class));
+    }
+
+    @Test
+    void resetLooksUpHashedCodeAndConsumesIt() throws Exception {
+        String code = "0123456789abcdef0123456789abcdef";
+        String hash = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
+                .digest(code.getBytes(StandardCharsets.UTF_8)));
+        user.setResetToken(hash);
+        user.setResetExpires(LocalDateTime.now().plusMinutes(10));
+        when(users.findByResetToken(hash)).thenReturn(Optional.of(user));
+        when(encoder.encode("new-password")).thenReturn("encoded-password");
+
+        auth.reset(new ResetRequest(code, "new-password"));
+
+        verify(users).findByResetToken(hash);
+        assertEquals("encoded-password", user.getPasswordHash());
+        assertNull(user.getResetToken());
+        assertNull(user.getResetExpires());
     }
 }
