@@ -128,7 +128,7 @@ public class AuthService {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(mailFrom);
         message.setTo(email);
-        message.setSubject("FarmVerse password reset code");
+        message.setSubject("AgroPrecision password reset code");
         message.setText("Your password reset code is " + code + ". It expires in 30 minutes.");
         try {
             mailSender.send(message);

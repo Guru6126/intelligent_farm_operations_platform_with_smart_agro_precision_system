@@ -3,13 +3,13 @@
 The backend uses the configuration and application structure on the `dev` branch. Run it from this directory so Spring Boot can load the optional local `.env` file:
 
 ```powershell
-.\mvnw.cmd spring-boot:run
+mvn spring-boot:run
 ```
 
 Run the backend tests with:
 
 ```powershell
-.\mvnw.cmd test
+mvn test
 ```
 
 ## Password reset email

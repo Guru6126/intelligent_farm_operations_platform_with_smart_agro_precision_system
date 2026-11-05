@@ -50,6 +50,7 @@ class AuthServiceTest {
         SimpleMailMessage message = messageCaptor.getValue();
         assertArrayEquals(new String[]{"owner@example.com"}, message.getTo());
         assertEquals("noreply@example.com", message.getFrom());
+        assertEquals("AgroPrecision password reset code", message.getSubject());
 
         String code = message.getText().replaceFirst("^Your password reset code is ", "")
                 .replaceFirst("\\. It expires in 30 minutes\\.$", "");
