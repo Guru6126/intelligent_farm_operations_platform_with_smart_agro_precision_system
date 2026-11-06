@@ -194,7 +194,7 @@ public final class FarmerQueryParser {
         }
 
         boolean bareName = !howTo && tokens.size() <= 3;
-        if (!(harvest || crop || farm || record || reg || period != FarmerQuery.Period.ALL || bareName)) {
+        if (bareName && !(harvest || crop || farm || record || reg || period != FarmerQuery.Period.ALL)) {
             return null;
         }
 

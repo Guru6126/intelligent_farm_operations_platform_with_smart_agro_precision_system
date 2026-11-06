@@ -1,11 +1,13 @@
 import { useState, type ReactNode } from "react";
+import { ChatbotWidget } from "@/components/ChatbotWidget";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   LayoutDashboard, Tractor, Map, Sprout, Package, CloudSun, Droplets, Wrench, Users, Bell, BarChart3,
-  UserCog, LogOut, Menu, X, Leaf, Shield,
+  UserCog, LogOut, Menu, X, Leaf, Shield, Bot,
 } from "lucide-react";
 import { signOut as clearSession } from "@/lib/auth";
+import { useLocation } from "@tanstack/react-router";
 import { useFarm } from "@/lib/farm-context";
 import { roleLabel } from "@/lib/auth";
 import { listRows } from "@/services/crud";
@@ -21,12 +23,16 @@ const nav = [
   { to: "/irrigation", label: "Irrigation", icon: Droplets },
   { to: "/equipment", label: "Equipment", icon: Wrench },
   { to: "/resources", label: "Resources & Tasks", icon: Users },
+  { to: "/assistant", label: "AI Assistant", icon: Bot },
   { to: "/notifications", label: "Notifications", icon: Bell },
   { to: "/analytics", label: "Analytics & Reports", icon: BarChart3 },
   { to: "/profile", label: "Profile", icon: UserCog },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
+  // Import the floating chatbot widget
+  // (lazy import to avoid circular dependency issues)
+
   const { session, farms, farmId, setFarmId } = useFarm();
   const [open, setOpen] = useState(false);
   const qc = useQueryClient();
@@ -93,18 +99,21 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-20 flex items-center gap-3 border-b bg-background/85 px-4 py-3 backdrop-blur lg:px-8">
           <button className="rounded-lg p-2 hover:bg-secondary lg:hidden" aria-label="Open menu" onClick={() => setOpen(true)}><Menu className="size-5" /></button>
-          <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground" htmlFor="farm-switch">Farm</label>
+     <h1 className="text-xl font-bold">     Intelligent Farm Operations Platform with Smart Agro Precision System</h1>
+          {/* <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground" htmlFor="farm-switch">Farm</label>
           <select id="farm-switch" value={farmId ?? "all"} onChange={(e) => setFarmId(e.target.value === "all" ? null : e.target.value)}
             className="h-9 max-w-[16rem] rounded-lg border bg-card px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
             <option value="all">All farms ({farms.length})</option>
             {farms.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
-          </select>
+          </select> */}
           <Link to="/notifications" className="relative ml-auto rounded-lg p-2 transition hover:bg-secondary" aria-label="Notifications">
             <Bell className="size-5" />
             {unread.length > 0 && <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-primary ring-2 ring-background" />}
           </Link>
         </header>
         <main className="flex-1 px-4 py-6 lg:px-8 lg:py-8">{children}</main>
+        {/* Floating AI chatbot widget – hide on assistant page */}
+        {/* {location.pathname !== "/assistant" && <ChatbotWidget />} */}
       </div>
     </div>
   );
