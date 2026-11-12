@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -18,36 +19,35 @@ import {
   Compass,
   AlertCircle,
 } from "lucide-react";
+=======
+import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Tractor, Leaf, UserPlus } from "lucide-react";
+>>>>>>> Stashed changes
 import { toast } from "sonner";
-import { PageHeader, StatCard } from "@/components/AppShell";
-import { ResourceTable, StatusPill, useRows, type ResourceConfig } from "@/components/ResourceTable";
+import { PageHeader } from "@/components/AppShell";
+import { ResourceTable, StatusPill, type ResourceConfig } from "@/components/ResourceTable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFarm, type Farm } from "@/lib/farm-context";
 import { canManage } from "@/lib/auth";
 import { rpc } from "@/services/crud";
+<<<<<<< Updated upstream
 import { api } from "@/lib/api";
 import type { Plot, Crop } from "@/lib/types";
 import { cropCfg, STAGES } from "./crops";
+=======
+import type { Plot } from "@/lib/types";
+>>>>>>> Stashed changes
 
 export const Route = createFileRoute("/_authenticated/farms")({
-  head: () => ({
-    meta: [
-      { title: "Farms & Plots — AgroPrecision" },
-      { name: "description", content: "Manage farms, plots, and cultivate crops." },
-    ],
-  }),
+  head: () => ({ meta: [{ title: "Farms & Plots — AgroPrecision" }, { name: "description", content: "Manage farms, plots and members." }] }),
   component: FarmsPage,
 });
 
 const farmCfg: ResourceConfig<Farm & Record<string, unknown>> = {
-  table: "farms",
-  title: "Farms Registry",
-  singular: "Farm",
-  farmScoped: false,
-  orderBy: "created_at",
+  table: "farms", title: "Farms", singular: "Farm", farmScoped: false, orderBy: "created_at",
   fields: [
     { key: "name", label: "Farm name", required: true },
     { key: "location", label: "Location / village" },
@@ -57,81 +57,15 @@ const farmCfg: ResourceConfig<Farm & Record<string, unknown>> = {
     { key: "soil_type", label: "Soil type" },
   ],
   columns: [
-    {
-      key: "name",
-      label: "Name",
-      render: (r) => (
-        <span className="font-medium">
-          {r.name} {r.is_demo && <StatusPill value="demo" tone="warn" />}
-        </span>
-      ),
-    },
+    { key: "name", label: "Name", render: (r) => <span className="font-medium">{r.name} {r.is_demo && <StatusPill value="demo" tone="warn" />}</span> },
     { key: "location", label: "Location" },
     { key: "total_area_acres", label: "Acres" },
     { key: "soil_type", label: "Soil" },
   ],
 };
 
-function FarmName({ id }: { id: string }) {
-  const { farms } = useFarm();
-  return <>{farms.find((f) => f.id === id)?.name ?? "—"}</>;
-}
-
-function PlotCropBadge({ plotId }: { plotId: string }) {
-  const { data: crops = [] } = useRows<Crop>("crops");
-  const plotCrops = crops.filter((c) => c.plot_id === plotId);
-
-  if (plotCrops.length === 0) {
-    return <span className="text-xs text-muted-foreground italic">No crop (fallow)</span>;
-  }
-
-  return (
-    <div className="flex flex-col gap-1.5 py-0.5">
-      {plotCrops.map((c) => (
-        <div key={c.id} className="flex flex-wrap items-center gap-1.5">
-          <span className="inline-flex items-center gap-1 font-medium text-foreground text-xs sm:text-sm">
-            <Sprout className="size-3.5 text-primary" />
-            {c.crop_name}
-          </span>
-          {c.variety && <span className="text-xs text-muted-foreground">({c.variety})</span>}
-          <StatusPill
-            value={c.stage}
-            tone={
-              c.stage === "harvested"
-                ? "muted"
-                : c.stage === "flowering" || c.stage === "harvest_ready"
-                  ? "warn"
-                  : "good"
-            }
-          />
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function PlotHarvestDue({ plotId }: { plotId: string }) {
-  const { data: crops = [] } = useRows<Crop>("crops");
-  const plotCrops = crops.filter((c) => c.plot_id === plotId);
-
-  if (plotCrops.length === 0) {
-    return <span className="text-xs text-muted-foreground">—</span>;
-  }
-
-  return (
-    <div className="flex flex-col gap-1 text-xs">
-      {plotCrops.map((c) => (
-        <div key={c.id} className="flex items-center gap-1 text-muted-foreground">
-          <Clock className="size-3 text-muted-foreground/80" />
-          <span>{c.expected_harvest ? `Due: ${c.expected_harvest}` : "Harvest date TBD"}</span>
-          {c.season && <span className="text-[11px] opacity-75">· {c.season}</span>}
-        </div>
-      ))}
-    </div>
-  );
-}
-
 const plotCfg: ResourceConfig<Plot> = {
+<<<<<<< Updated upstream
   table: "plots",
   title: "Plots & Assigned Crops",
   singular: "Plot",
@@ -151,6 +85,9 @@ const plotCfg: ResourceConfig<Plot> = {
     }
     return null;
   },
+=======
+  table: "plots", title: "Plots", singular: "Plot",
+>>>>>>> Stashed changes
   fields: [
     { key: "name", label: "Plot name", required: true },
     { key: "area_acres", label: "Area (acres)", type: "number" },
@@ -161,45 +98,11 @@ const plotCfg: ResourceConfig<Plot> = {
     { key: "farm_id", label: "Farm", render: (r) => <FarmName id={r.farm_id} /> },
     { key: "area_acres", label: "Acres" },
     { key: "soil_ph", label: "Soil pH" },
-    {
-      key: "crop_details",
-      label: "Current Crop",
-      render: (r) => <PlotCropBadge plotId={r.id} />,
-    },
-    {
-      key: "harvest_window",
-      label: "Harvest Due",
-      render: (r) => <PlotHarvestDue plotId={r.id} />,
-    },
-    {
-      key: "boundary_geojson",
-      label: "Boundary",
-      render: (r) =>
-        r.boundary_geojson ? (
-          <Link
-            to="/map"
-            className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400 hover:underline"
-            title="View plot boundary on GIS Map"
-          >
-            <StatusPill value="mapped" tone="good" />
-            <ArrowUpRight className="size-3" />
-          </Link>
-        ) : (
-          <Link
-            to="/map"
-            className="inline-flex items-center gap-1.5 group"
-            title="Click to plot and mark boundary directly on map"
-          >
-            <StatusPill value="not mapped" tone="warn" />
-            <span className="inline-flex items-center gap-0.5 text-xs font-medium text-primary group-hover:underline">
-              <Compass className="size-3" /> Mark on Map <ArrowUpRight className="size-3" />
-            </span>
-          </Link>
-        ),
-    },
+    { key: "boundary_geojson", label: "Boundary", render: (r) => r.boundary_geojson ? <StatusPill value="mapped" tone="good" /> : <StatusPill value="not mapped" /> },
   ],
 };
 
+<<<<<<< Updated upstream
 function FarmsPage() {
   const { farms, session } = useFarm();
   const { data: plots = [] } = useRows<Plot>("plots");
@@ -420,208 +323,34 @@ function FarmsPage() {
       </Tabs>
     </div>
   );
+=======
+function FarmName({ id }: { id: string }) {
+  const { farms } = useFarm();
+  return <>{farms.find((f) => f.id === id)?.name ?? "—"}</>;
+>>>>>>> Stashed changes
 }
 
-/** Visual grid displaying each plot along with its assigned crop lifecycle details */
-function PlotCropGrid({
-  plots,
-  crops,
-  farms,
-}: {
-  plots: Plot[];
-  crops: Crop[];
-  farms: Farm[];
-}) {
-  if (plots.length === 0) {
-    return null;
-  }
-
+function FarmsPage() {
+  const { farms, session } = useFarm();
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
-          <Sprout className="size-4 text-primary" /> Plot Cultivation & Crop Progress
-        </h3>
-        <span className="text-xs text-muted-foreground font-mono">
-          {plots.length} plot{plots.length === 1 ? "" : "s"} monitored
-        </span>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {plots.map((plot, i) => {
-          const farm = farms.find((f) => f.id === plot.farm_id);
-          const plotCrops = crops.filter((c) => c.plot_id === plot.id);
-          const activeCrop = plotCrops.find((c) => c.stage !== "harvested") || plotCrops[0];
-
-          return (
-            <div
-              key={plot.id}
-              className="lift animate-grow rounded-2xl border bg-card p-5 shadow-soft flex flex-col justify-between"
-              style={{ animationDelay: `${i * 60}ms` }}
-            >
-              <div>
-                {/* Plot Title & Farm Info */}
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <h4 className="font-semibold text-base text-foreground flex items-center gap-1.5">
-                      {plot.name}
-                    </h4>
-                    <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                      <MapPin className="size-3 text-muted-foreground" />
-                      {farm?.name ?? "Unassigned Farm"}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <Badge variant="outline" className="text-xs font-mono font-normal">
-                      {plot.area_acres ?? "—"} acres
-                    </Badge>
-                    {plot.soil_ph && (
-                      <Badge variant="secondary" className="text-xs font-mono font-normal">
-                        pH {plot.soil_ph}
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-
-                {/* Crop Cultivation Details */}
-                <div className="mt-4 rounded-xl border bg-secondary/30 p-3.5">
-                  {activeCrop ? (
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2">
-                          <div className="grid size-8 place-items-center rounded-lg bg-primary/10 text-primary">
-                            <Sprout className="size-4" />
-                          </div>
-                          <div>
-                            <span className="font-semibold text-sm text-foreground">
-                              {activeCrop.crop_name}
-                            </span>
-                            {activeCrop.variety && (
-                              <span className="ml-1 text-xs text-muted-foreground">
-                                ({activeCrop.variety})
-                              </span>
-                            )}
-                            {activeCrop.season && (
-                              <p className="text-[11px] text-muted-foreground">{activeCrop.season}</p>
-                            )}
-                          </div>
-                        </div>
-                        <StatusPill
-                          value={activeCrop.stage}
-                          tone={
-                            activeCrop.stage === "harvested"
-                              ? "muted"
-                              : activeCrop.stage === "flowering" || activeCrop.stage === "harvest_ready"
-                                ? "warn"
-                                : "good"
-                          }
-                        />
-                      </div>
-
-                      {/* 6-Stage Progress Stepper */}
-                      <div>
-                        <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1">
-                          <span className="font-medium capitalize text-foreground">
-                            Stage: {activeCrop.stage.replace(/_/g, " ")}
-                          </span>
-                          <span className="font-mono text-[10px]">
-                            {STAGES.indexOf(activeCrop.stage) + 1}/{STAGES.length}
-                          </span>
-                        </div>
-                        <ol className="flex items-center gap-1" aria-label={`Stage: ${activeCrop.stage}`}>
-                          {STAGES.map((s, si) => {
-                            const activeIdx = STAGES.indexOf(activeCrop.stage);
-                            const isCompleted = si <= activeIdx;
-                            const isCurrent = si === activeIdx;
-                            return (
-                              <li key={s} className="flex-1">
-                                <div
-                                  className={`h-1.5 rounded-full transition-all duration-500 ${isCompleted
-                                      ? isCurrent
-                                      : "bg-muted"
-                                    } ${isCompleted ? "bg-primary" : ""}`}
-                                  title={s.replace(/_/g, " ")}
-                                />
-                              </li>
-                            );
-                          })}
-                        </ol>
-                      </div>
-
-                      {/* Planting & Harvest Dates */}
-                      <div className="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-border/60">
-                        <div>
-                          <span className="text-[10px] uppercase tracking-wider text-muted-foreground block">
-                            Sowing Date
-                          </span>
-                          <span className="font-mono text-foreground">
-                            {activeCrop.sowing_date ?? "Not recorded"}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-[10px] uppercase tracking-wider text-muted-foreground block">
-                            Expected Harvest
-                          </span>
-                          <span className="font-mono font-medium text-foreground">
-                            {activeCrop.expected_harvest ?? "TBD"}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-center py-3">
-                      <p className="text-xs text-muted-foreground italic">
-                        No crop currently planted in this plot (Fallow land).
-                      </p>
-                      <p className="text-[11px] text-muted-foreground/80 mt-1">
-                        Use the Crop Plans tab to assign a crop to this plot.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Bottom Details: GIS Boundary & Link */}
-              <div className="mt-3 flex items-center justify-between text-xs pt-2.5 border-t border-border/50">
-                <span className="flex items-center gap-1.5">
-                  {plot.boundary_geojson ? (
-                    <span className="inline-flex items-center gap-1 font-medium text-emerald-600 dark:text-emerald-400">
-                      <CheckCircle2 className="size-3.5" />
-                      GIS Mapped
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 font-medium text-amber-600 dark:text-amber-500">
-                      <AlertCircle className="size-3.5" />
-                      Boundary pending
-                    </span>
-                  )}
-                </span>
-                {plot.boundary_geojson ? (
-                  <Button asChild size="sm" variant="ghost" className="h-7 px-2 text-xs text-primary hover:text-primary gap-1 font-medium">
-                    <Link to="/map">
-                      View on Map <ArrowUpRight className="size-3" />
-                    </Link>
-                  </Button>
-                ) : (
-                  <Button
-                    asChild
-                    size="sm"
-                    className="h-7 px-2.5 text-xs gap-1.5 font-medium bg-primary text-primary-foreground hover:bg-primary/90 shadow-xs"
-                  >
-                    <Link
-                      to="/map"
-                      title={`Mark boundary on map for ${plot.name} (${farm?.name ?? "Farm"})`}
-                    >
-                      <Compass className="size-3.5" />
-                      Mark Boundary <ArrowUpRight className="size-3" />
-                    </Link>
-                  </Button>
-                )}
-              </div>
+    <div className="space-y-6">
+      <PageHeader icon={Tractor} title="Farms & Plots" subtitle="Register farms, divide them into plots, add field workers."
+        decoration={<Leaf className="absolute -right-6 -top-6 size-40 rotate-12 text-lime/10 animate-cloud" />} />
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {farms.map((f, i) => (
+          <div key={f.id} className="lift animate-grow rounded-2xl border bg-card p-5 shadow-soft" style={{ animationDelay: `${i * 70}ms` }}>
+            <div className="flex items-start justify-between">
+              <h3 className="text-lg font-semibold">{f.name}</h3>
+              {f.is_demo && <StatusPill value="demo data" tone="warn" />}
             </div>
-          );
-        })}
+            <p className="mt-1 text-sm text-muted-foreground">{f.location ?? "No location"} · {f.total_area_acres ?? "?"} acres</p>
+            <p className="mt-1 font-tech text-xs text-muted-foreground">{f.latitude && f.longitude ? `${f.latitude}, ${f.longitude}` : "No coordinates"}</p>
+            {canManage(session.roles) && f.owner_id === session.userId && <AddMember farmId={f.id} />}
+          </div>
+        ))}
       </div>
+      <ResourceTable config={farmCfg} />
+      <ResourceTable config={plotCfg} />
     </div>
   );
 }
@@ -634,13 +363,10 @@ function AddMember({ farmId }: { farmId: string }) {
 
   const addExisting = useMutation({
     mutationFn: () => rpc("add_farm_member_by_email", { _farm: farmId, _email: email }),
-    onSuccess: () => {
-      toast.success("Field worker added to farm");
-      setEmail("");
-      qc.invalidateQueries();
-    },
+    onSuccess: () => { toast.success("Field worker added to farm"); setEmail(""); qc.invalidateQueries(); },
     onError: (e: Error) => toast.error(e.message),
   });
+<<<<<<< Updated upstream
 
   const genInvite = useMutation({
     mutationFn: () => api<{ token: string; inviteUrl: string }>("/api/invites", { method: "POST", body: { farmId } }),
@@ -737,5 +463,12 @@ function AddMember({ farmId }: { farmId: string }) {
         )}
       </div>
     </div>
+=======
+  return (
+    <form className="mt-4 flex gap-2" onSubmit={(e) => { e.preventDefault(); m.mutate(); }}>
+      <Input type="email" required placeholder="worker@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className="h-9" aria-label="Field worker email" />
+      <Button size="sm" variant="secondary" loading={m.isPending}><UserPlus /> Add</Button>
+    </form>
+>>>>>>> Stashed changes
   );
 }
