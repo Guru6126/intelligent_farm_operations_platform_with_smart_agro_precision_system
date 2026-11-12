@@ -79,6 +79,8 @@ java -jar backend/target/agroprecision-backend-1.0.0.jar
 ```
 The JAR contains both backend APIs and the chatbot UI, ready for deployment.
 
+4. Install ollama in your device
+
 ---
 
 ## Key Files Added / Modified
