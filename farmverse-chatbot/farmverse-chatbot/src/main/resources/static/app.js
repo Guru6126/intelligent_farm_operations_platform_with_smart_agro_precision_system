@@ -2,9 +2,7 @@
 
 (function () {
   const params = new URLSearchParams(location.search);
-  const API_BASE = (params.get("api")
-    || (location.port === "8080" && location.protocol.startsWith("http") ? "" : "http://localhost:8080"))
-    .replace(/\/$/, "");
+  const API_BASE = (params.get("api") || `${location.protocol}//${location.hostname}:8081`).replace(/\/$/, "");
 
   const TOPICS = {
     crops: { title: "Crops", qs: ["What is crop rotation?", "How can I grow rice?", "When should I harvest wheat?"] },

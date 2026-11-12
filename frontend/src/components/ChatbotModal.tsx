@@ -1,4 +1,5 @@
-// src/components/ChatbotModal.tsx
+// Trigger Vite rebuild after env change
+
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 
@@ -36,6 +37,7 @@ export const ChatbotModal = ({ open, onClose }: Props) => {
         </div>
 
         {/* Iframe that loads the full chatbot UI */}
+        
         <iframe
           src={import.meta.env.VITE_CHATBOT_STATIC?.replace(/\/static$/, "/")} // → http://localhost:8081/
           className="w-full h-full border-0"

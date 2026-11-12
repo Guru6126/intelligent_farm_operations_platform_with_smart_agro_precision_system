@@ -27,27 +27,31 @@ The goal is to run **both** backend services in a single Spring Boot JVM so the 
 
 ---
 
-## Build & Run (Development)
-### 1. Install backend & chatbot dependencies
-```bash
-# From the project root
-./mvnw clean install
-```
-### 2. Start the combined Spring Boot server
-```bash
-./mvnw spring-boot:run   # Serves both AgroPrecision and FarmVerse on the same port (default 8081)
-```
-The server will expose:
-- API endpoints under `/api/**` (AgroPrecision).
-- Chatbot endpoints under `/api/chatbot/**`.
-- Static chatbot UI assets (e.g. `/static/app.js`) served from the classpath.
+## Development – Run each component separately
 
-### 3. Run the React development server (UI)
+### 1. Backend (AgroPrecision)
+
+```bash
+cd backend
+./mvnw spring-boot:run   # runs the AgroPrecision backend on http://localhost:8081
+```
+
+### 2. Chatbot (FarmVerse)
+
+```bash
+cd farmverse-chatbot/farmverse-chatbot
+./mvnw spring-boot:run   # runs the chatbot UI/API on http://localhost:8081
+```
+
+### 3. Frontend (React)
+
 ```bash
 cd frontend
 npm install
-npm run dev
+npm run dev               # UI available at http://localhost:5173
 ```
+
+The three services can be started in three separate terminals. The frontend communicates with the backend and chatbot via the URLs above. No root `pom.xml` is required for this workflow.
 The UI is available at `http://localhost:5173`. It reads the following environment variables (see `.env.example`):
 - `VITE_CHATBOT_STATIC` – Base URL for static chatbot assets (e.g. `http://localhost:8081/static`).
 - `VITE_CHATBOT_API` – Base URL for chatbot API calls (e.g. `http://localhost:8081/api`).
