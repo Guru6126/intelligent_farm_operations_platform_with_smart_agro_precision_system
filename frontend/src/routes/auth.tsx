@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { api } from "@/lib/api";
+import { validateValues } from "@/lib/validation";
 import { signIn, signUp } from "@/lib/auth";
 import hero from "@/assets/hero-farm.jpg";
 
@@ -54,7 +55,7 @@ function AuthPage() {
     }
   }, [inviteToken]);
 
-  import { validateValues } from "@/lib/validation";
+
 
 const submit = async (e: React.FormEvent) => {
   e.preventDefault();
@@ -64,7 +65,6 @@ const submit = async (e: React.FormEvent) => {
     toast.error(err);
     return;
   }
-    e.preventDefault();
     setBusy(true);
     try {
       if (mode === "signin") {
