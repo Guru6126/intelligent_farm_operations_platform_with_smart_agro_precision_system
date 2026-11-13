@@ -39,3 +39,6 @@ backend/target/
 
 # Personal project documentation
 PROJECT_GUIDE.md
+
+#automatically generated files
+routeTree.gen.ts
