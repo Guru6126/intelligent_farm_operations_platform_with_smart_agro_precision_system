@@ -262,9 +262,7 @@ export default function FarmMap() {
           </p>
         </div>
 
-        <Button variant="outline" onClick={resetDrawing} disabled={savePlot.isPending}>
-          + New plot
-        </Button>
+        
       </div>
 
       {/* Summary cards */}

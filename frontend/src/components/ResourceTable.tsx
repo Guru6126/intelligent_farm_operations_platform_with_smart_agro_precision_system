@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { deleteRow, downloadCsv, insertRow, listRows, updateRow } from "@/services/crud";
+import { validateValues } from "@/lib/validation";
 import { useFarm } from "@/lib/farm-context";
 import { canManage } from "@/lib/auth";
 import { cn } from "@/lib/utils";
@@ -174,7 +175,14 @@ export function ResourceTable<T extends Row>({ config, children }: { config: Res
         </table>
       </div>
       {editing && (
-        <RecordDialog config={config} initial={editing} existingRows={rows} onClose={() => setEditing(null)} saving={save.isPending} onSave={(v) => save.mutate(v)} />
+        <RecordDialog config={config} initial={editing} existingRows={rows} onClose={() => setEditing(null)} saving={save.isPending} onSave={(v) => {
+  const err = validateValues(v);
+  if (err) {
+    toast.error(err);
+    return;
+  }
+  save.mutate(v);
+}} />
       )}
     </section>
   );

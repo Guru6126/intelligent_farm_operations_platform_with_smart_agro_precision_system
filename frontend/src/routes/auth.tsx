@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { api } from "@/lib/api";
+import { validateValues } from "@/lib/validation";
 import { signIn, signUp } from "@/lib/auth";
 import hero from "@/assets/hero-farm.jpg";
 
@@ -54,8 +55,16 @@ function AuthPage() {
     }
   }, [inviteToken]);
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
+
+
+const submit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  // Basic validation for email and password
+  const err = validateValues({ email: form.email, password: form.password });
+  if (err) {
+    toast.error(err);
+    return;
+  }
     setBusy(true);
     try {
       if (mode === "signin") {

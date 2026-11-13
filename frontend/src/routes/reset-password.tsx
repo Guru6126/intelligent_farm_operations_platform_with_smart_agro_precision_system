@@ -5,7 +5,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { api } from "@/lib/api";
+import { validateValues } from "@/lib/validation";
+
 
 export const Route = createFileRoute("/reset-password")({
   validateSearch: z.object({ token: z.string().optional() }),

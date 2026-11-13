@@ -40,5 +40,6 @@ backend/target/
 # Personal project documentation
 PROJECT_GUIDE.md
 
-#automatically generated files
-routeTree.gen.ts
+# Generated route tree – do not commit
+**/routeTree.gen.ts
+*.gen.ts

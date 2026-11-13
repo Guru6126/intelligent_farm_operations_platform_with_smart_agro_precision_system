@@ -7,7 +7,8 @@ import { PageHeader } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { api } from "@/lib/api";
+import { validateValues } from "@/lib/validation";
+
 import { roleLabel } from "@/lib/auth";
 import { useFarm } from "@/lib/farm-context";
 
@@ -39,7 +40,7 @@ function ProfilePage() {
     <div className="space-y-6">
       <PageHeader icon={UserCog} title="Profile" subtitle={`${session.email} · ${session.roles.map((r) => roleLabel[r]).join(", ")}`} />
       <div className="grid gap-6 lg:grid-cols-2">
-        <form className="animate-rise space-y-4 rounded-2xl border bg-card p-6 shadow-soft" onSubmit={(e) => { e.preventDefault(); save.mutate(); }}>
+        <form className="animate-rise space-y-4 rounded-2xl border bg-card p-6 shadow-soft" onSubmit={(e) => { e.preventDefault(); const err = validateValues({ phone: form.phone }); if (err) { toast.error(err); return; } save.mutate(); }}>
           <h2 className="font-semibold">Your details</h2>
           <div className="grid gap-1.5"><Label htmlFor="fn">Full name</Label><Input id="fn" required value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} /></div>
           <div className="grid gap-1.5"><Label htmlFor="ph">Phone</Label><Input id="ph" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
