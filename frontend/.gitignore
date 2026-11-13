@@ -39,3 +39,7 @@ backend/target/
 
 # Personal project documentation
 PROJECT_GUIDE.md
+
+# Generated route tree – do not commit
+**/routeTree.gen.ts
+*.gen.ts
