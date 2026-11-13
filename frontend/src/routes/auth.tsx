@@ -54,7 +54,16 @@ function AuthPage() {
     }
   }, [inviteToken]);
 
-  const submit = async (e: React.FormEvent) => {
+  import { validateValues } from "@/lib/validation";
+
+const submit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  // Basic validation for email and password
+  const err = validateValues({ email: form.email, password: form.password });
+  if (err) {
+    toast.error(err);
+    return;
+  }
     e.preventDefault();
     setBusy(true);
     try {
