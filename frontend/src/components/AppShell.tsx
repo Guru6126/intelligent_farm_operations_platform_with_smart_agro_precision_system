@@ -24,9 +24,7 @@ const nav = [
   { to: "/equipment", label: "Equipment", icon: Wrench },
   { to: "/resources", label: "Resources & Tasks", icon: Users },
   { to: "/assistant", label: "AI Assistant", icon: Bot },
-  { to: "/notifications", label: "Notifications", icon: Bell },
   { to: "/analytics", label: "Analytics & Reports", icon: BarChart3 },
-  { to: "/profile", label: "Profile", icon: UserCog },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -73,9 +71,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               activeProps={{ className: "bg-sidebar-accent text-sidebar-accent-foreground shadow-[inset_3px_0_0_var(--lime)]" }}>
               <n.icon className="size-4 transition group-hover:text-sidebar-primary" />
               <span className="flex-1">{n.label}</span>
-              {n.to === "/notifications" && unread.length > 0 && (
-                <span className="rounded-full bg-sidebar-primary px-1.5 text-[10px] font-bold text-sidebar-primary-foreground">{unread.length}</span>
-              )}
+
             </Link>
           ))}
           {isAdmin && (
@@ -106,10 +102,15 @@ export function AppShell({ children }: { children: ReactNode }) {
             <option value="all">All farms ({farms.length})</option>
             {farms.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
           </select> */}
-          <Link to="/notifications" className="relative ml-auto rounded-lg p-2 transition hover:bg-secondary" aria-label="Notifications">
-            <Bell className="size-5" />
-            {unread.length > 0 && <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-primary ring-2 ring-background" />}
-          </Link>
+          <div className="flex items-center gap-2 ml-auto">
+            <Link to="/notifications" className="relative rounded-lg p-2 transition hover:bg-secondary" aria-label="Notifications">
+              <Bell className="size-5" />
+              {unread.length > 0 && <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-primary ring-2 ring-background" />}
+            </Link>
+            <Link to="/profile" className="rounded-lg p-2 transition hover:bg-secondary" aria-label="Profile">
+              <UserCog className="size-5" />
+            </Link>
+          </div>
         </header>
         <main className="flex-1 px-4 py-6 lg:px-8 lg:py-8">{children}</main>
         {/* Floating AI chatbot widget – hide on assistant page */}
