@@ -247,16 +247,16 @@ function RecordDialog<T extends Row>({ config, initial, existingRows, onClose, o
   };
 
   const set = (k: string, v: unknown) => { setErrorMsg(null); setValues((s) => ({ ...s, [k]: v })); };
-  const fieldCls = "h-10 w-full rounded-lg border border-input bg-card px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+  const fieldCls = "h-10 w-full rounded-lg border border-[#b7d8bd] bg-[#f0f8f1] px-3 text-sm text-[#123b2a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#16834a]";
   const title = useMemo(() => `${values.id ? "Edit" : "New"} ${config.singular.toLowerCase()}`, [values.id, config.singular]);
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+      <DialogContent className="w-[95vw] max-w-3xl overflow-visible">
         <DialogHeader><DialogTitle className="font-display">{title}</DialogTitle></DialogHeader>
-        <form onSubmit={submit} className="grid gap-4">
+        <form onSubmit={submit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {errorMsg && (
-            <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive-soft p-3 text-xs text-destructive">
+           <div className="sm:col-span-2 flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive-soft p-3 text-xs text-destructive">
               <AlertCircle className="size-4 shrink-0" />
               <span>{errorMsg}</span>
             </div>
@@ -289,14 +289,14 @@ function RecordDialog<T extends Row>({ config, initial, existingRows, onClose, o
                 ) : f.type === "textarea" ? (
                   <textarea id={f.key} className={cn(fieldCls, "h-24 py-2")} value={val} onChange={(e) => set(f.key, e.target.value)} />
                 ) : (
-                  <Input id={f.key} required={f.required} step="any"
-                    type={f.type === "number" ? "number" : f.type === "date" ? "date" : f.type === "datetime" ? "datetime-local" : "text"}
-                    value={val} onChange={(e) => set(f.key, e.target.value)} />
+                 <Input id={f.key} required={f.required} step="any" type={f.type === "number" ? "number" : f.type === "date" ? "date" : f.type === "datetime" ? "datetime-local" : "text"} value={val} onChange={(e) => set(f.key, e.target.value)}
+                  className={(f.type === "date" || f.type === "datetime") && "date-picker-left"}
+                  />
                 )}
               </div>
             );
           })}
-          <DialogFooter>
+          <DialogFooter className="sm:col-span-2">
             <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
             <Button type="submit" loading={saving} disabled={saving}>Save</Button>
           </DialogFooter>
