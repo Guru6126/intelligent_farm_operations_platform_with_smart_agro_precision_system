@@ -181,3 +181,16 @@
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
   [data-reveal] { opacity: 1; transform: none; }
 }
+input.date-picker-right {
+  padding-left: 0.75rem;
+  padding-right: 2.5rem;
+  position: relative;
+}
+
+input.date-picker-right::-webkit-calendar-picker-indicator {
+  position: absolute;
+  right: 10px;
+  left: auto;
+  cursor: pointer;
+  opacity: 1;
+}
