@@ -11,3 +11,19 @@ export type Expense = Base & { category: string; amount: number; spent_on: strin
 export type Budget = Base & { category: string; season: string; planned_amount: number };
 export type Weather = Base & { recorded_on: string; temperature_c: number; humidity_pct: number; rainfall_mm: number; wind_kmh: number; condition: string | null };
 export type Notification = { id: string; title: string; body: string | null; severity: string; is_read: boolean; created_at: string };
+
+export type UserProfile = {
+  user_id: string;
+  first_name: string | null;
+  last_name: string | null;
+  email: string;
+  phone_number: string | null;
+  gender: string | null;
+  date_of_birth: string | null;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  pincode: string | null;
+  fullName?: string | null;
+  phone?: string | null;
+};

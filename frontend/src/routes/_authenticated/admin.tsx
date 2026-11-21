@@ -14,7 +14,22 @@ export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
 });
 
-interface AdminUser { id: string; email: string; full_name: string | null; roles: AppRole[]; created_at: string | null }
+interface AdminUser {
+  id: string;
+  user_id?: string;
+  email: string;
+  full_name: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  phone_number?: string | null;
+  gender?: string | null;
+  date_of_birth?: string | null;
+  city?: string | null;
+  state?: string | null;
+  pincode?: string | null;
+  roles: AppRole[];
+  created_at: string | null;
+}
 const ROLES: AppRole[] = ["admin", "farmer", "field_worker"];
 
 function AdminPage() {
@@ -33,14 +48,27 @@ function AdminPage() {
       <div className="overflow-x-auto rounded-2xl border bg-card shadow-soft">
         <table className="w-full text-sm">
           <thead className="bg-muted/60 text-left text-xs uppercase text-muted-foreground">
-            <tr><th className="p-3">Name</th><th className="p-3">Email</th><th className="p-3">Joined</th>{ROLES.map((r) => <th key={r} className="p-3 text-center">{roleLabel[r]}</th>)}</tr>
+            <tr>
+              <th className="p-3">Name</th>
+              <th className="p-3">Email</th>
+              <th className="p-3">Phone</th>
+              <th className="p-3">City / State</th>
+              <th className="p-3">Joined</th>
+              {ROLES.map((r) => <th key={r} className="p-3 text-center">{roleLabel[r]}</th>)}
+            </tr>
           </thead>
           <tbody>
-            {isLoading && <tr><td colSpan={6} className="p-6 text-center text-muted-foreground">Loading…</td></tr>}
+            {isLoading && <tr><td colSpan={8} className="p-6 text-center text-muted-foreground">Loading…</td></tr>}
             {data.map((u) => (
               <tr key={u.id} className="border-t">
-                <td className="p-3 font-medium">{u.full_name ?? "—"}</td>
+                <td className="p-3 font-medium">
+                  {u.first_name || u.last_name ? `${u.first_name ?? ""} ${u.last_name ?? ""}`.trim() : (u.full_name ?? "—")}
+                </td>
                 <td className="p-3">{u.email}</td>
+                <td className="p-3 text-muted-foreground">{u.phone_number ?? "—"}</td>
+                <td className="p-3 text-muted-foreground">
+                  {u.city || u.state ? `${u.city ?? ""}${u.city && u.state ? ", " : ""}${u.state ?? ""}` : "—"}
+                </td>
                 <td className="p-3 text-muted-foreground">{u.created_at?.slice(0, 10) ?? "—"}</td>
                 {ROLES.map((r) => (
                   <td key={r} className="p-3 text-center">

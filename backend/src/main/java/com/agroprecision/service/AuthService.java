@@ -49,7 +49,37 @@ public class AuthService {
         User u = new User();
         u.setId(UUID.randomUUID().toString());
         u.setEmail(email);
-        u.setFullName(r.fullName().trim());
+
+        String fn = r.firstName() != null && !r.firstName().isBlank() ? r.firstName().trim() : null;
+        String ln = r.lastName() != null && !r.lastName().isBlank() ? r.lastName().trim() : null;
+        String computedFullName = r.fullName() != null && !r.fullName().isBlank() ? r.fullName().trim() :
+                ((fn != null ? fn : "") + (ln != null ? " " + ln : "")).trim();
+        if (computedFullName.isBlank()) {
+            computedFullName = email.split("@")[0];
+        }
+        u.setFirstName(fn);
+        u.setLastName(ln);
+        u.setFullName(computedFullName);
+
+        String p = r.phoneNumber() != null && !r.phoneNumber().isBlank() ? r.phoneNumber().trim() :
+                (r.phone() != null && !r.phone().isBlank() ? r.phone().trim() : null);
+        u.setPhone(p);
+        u.setPhoneNumber(p);
+        u.setGender(r.gender() != null && !r.gender().isBlank() ? r.gender().trim() : null);
+
+        if (r.dateOfBirth() != null && !r.dateOfBirth().isBlank()) {
+            try {
+                u.setDateOfBirth(java.time.LocalDate.parse(r.dateOfBirth().trim()));
+            } catch (Exception ex) {
+                log.warn("Could not parse dateOfBirth: {}", r.dateOfBirth());
+            }
+        }
+
+        u.setAddress(r.address() != null && !r.address().isBlank() ? r.address().trim() : null);
+        u.setCity(r.city() != null && !r.city().isBlank() ? r.city().trim() : null);
+        u.setState(r.state() != null && !r.state().isBlank() ? r.state().trim() : null);
+        u.setPincode(r.pincode() != null && !r.pincode().isBlank() ? r.pincode().trim() : null);
+
         u.setPasswordHash(encoder.encode(r.password()));
         u.getRoles().add(new UserRole(UUID.randomUUID().toString(), u, role));
         if (!adminEmail.isEmpty() && adminEmail.equalsIgnoreCase(email))

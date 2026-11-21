@@ -74,13 +74,13 @@ function Dashboard() {
           <div className="flex-1">
             <h2 className="font-semibold">No farms yet</h2>
             <p className="text-sm text-muted-foreground">
-              {canManage(session.roles) ? "Create your first farm, or load a clearly labelled demo farm with sample records." : "Ask a farmer to add you to their farm using your email."}
+              {canManage(session.roles) ? "Create your first farm." : "Ask a farmer to add you to their farm using your email."}
             </p>
           </div>
           {canManage(session.roles) && (
             <div className="flex gap-2">
               <Button asChild variant="outline"><Link to="/farms">Create farm</Link></Button>
-              <Button onClick={() => seed.mutate()} loading={seed.isPending}>Load demo data</Button>
+              
             </div>
           )}
         </div>

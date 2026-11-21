@@ -28,8 +28,42 @@ public class DatabaseMigrationRunner implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
+        ensureUserColumns();
         deduplicatePlots();
         ensurePlotUniqueConstraint();
+    }
+
+    private void ensureUserColumns() {
+        try {
+            ensureColumn("users", "first_name", "VARCHAR(100)");
+            ensureColumn("users", "last_name", "VARCHAR(100)");
+            ensureColumn("users", "phone_number", "VARCHAR(50)");
+            ensureColumn("users", "gender", "VARCHAR(20)");
+            ensureColumn("users", "date_of_birth", "DATE");
+            ensureColumn("users", "address", "TEXT");
+            ensureColumn("users", "city", "VARCHAR(100)");
+            ensureColumn("users", "state", "VARCHAR(100)");
+            ensureColumn("users", "pincode", "VARCHAR(20)");
+        } catch (Exception e) {
+            log.error("Error ensuring user columns: {}", e.getMessage(), e);
+        }
+    }
+
+    private void ensureColumn(String table, String column, String colDef) {
+        try {
+            Integer exists = db.queryForObject(
+                "SELECT COUNT(*) FROM information_schema.COLUMNS " +
+                "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?",
+                Integer.class, table, column
+            );
+            if (exists == null || exists == 0) {
+                log.info("Adding column {} to {}...", column, table);
+                db.execute("ALTER TABLE " + table + " ADD COLUMN " + column + " " + colDef);
+                log.info("Successfully added column {} to {}.", column, table);
+            }
+        } catch (Exception e) {
+            log.warn("Could not check/add column {} on {}: {}", column, table, e.getMessage());
+        }
     }
 
     private void deduplicatePlots() {

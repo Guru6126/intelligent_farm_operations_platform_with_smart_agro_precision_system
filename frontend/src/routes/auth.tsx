@@ -41,7 +41,21 @@ function AuthPage() {
 
   const [mode, setMode] = useState<Mode>(inviteToken ? "signup" : "signin");
   const [busy, setBusy] = useState(false);
-  const [form, setForm] = useState({ email: "", password: "", fullName: "", role: "farmer" });
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+    firstName: "",
+    lastName: "",
+    fullName: "",
+    phoneNumber: "",
+    gender: "",
+    dateOfBirth: "",
+    address: "",
+    city: "",
+    state: "",
+    pincode: "",
+    role: "farmer",
+  });
   const [invitePreview, setInvitePreview] = useState<InvitePreview | null>(null);
   const [inviteError, setInviteError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -73,10 +87,24 @@ const submit = async (e: React.FormEvent) => {
         navigate({ to });
       } else if (mode === "signup") {
         if (form.password.length < 8) throw new Error("Password must be at least 8 characters.");
+        if (form.phoneNumber) {
+          const phoneErr = validateValues({ phone: form.phoneNumber });
+          if (phoneErr) throw new Error(phoneErr);
+        }
         await signUp({
           email: form.email,
           password: form.password,
-          fullName: form.fullName,
+          firstName: form.firstName,
+          lastName: form.lastName,
+          fullName: form.fullName || `${form.firstName} ${form.lastName}`.trim(),
+          phoneNumber: form.phoneNumber,
+          phone: form.phoneNumber,
+          gender: form.gender,
+          dateOfBirth: form.dateOfBirth || undefined,
+          address: form.address,
+          city: form.city,
+          state: form.state,
+          pincode: form.pincode,
           role: inviteToken ? "field_worker" : "farmer",
           inviteToken: inviteToken || undefined,
         });
@@ -151,10 +179,63 @@ const submit = async (e: React.FormEvent) => {
 
           {mode === "signup" && (
             <>
-              <div className="grid gap-1.5">
-                <Label htmlFor="fn">Full name</Label>
-                <Input id="fn" required value={form.fullName} onChange={set("fullName")} />
+              <div className="grid grid-cols-2 gap-2">
+                <div className="grid gap-1.5">
+                  <Label htmlFor="firstName">First name</Label>
+                  <Input id="firstName" required value={form.firstName} onChange={set("firstName")} />
+                </div>
+                <div className="grid gap-1.5">
+                  <Label htmlFor="lastName">Last name</Label>
+                  <Input id="lastName" required value={form.lastName} onChange={set("lastName")} />
+                </div>
               </div>
+
+              <div className="grid gap-1.5">
+                <Label htmlFor="phoneNumber">Phone number</Label>
+                <Input id="phoneNumber" placeholder="10-digit number" value={form.phoneNumber} onChange={set("phoneNumber")} />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div className="grid gap-1.5">
+                  <Label htmlFor="gender">Gender</Label>
+                  <select
+                    id="gender"
+                    className="h-10 rounded-md border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    value={form.gender}
+                    onChange={set("gender")}
+                  >
+                    <option value="">Select</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div className="grid gap-1.5">
+                  <Label htmlFor="dob">Date of Birth</Label>
+                  <Input id="dob" type="date" value={form.dateOfBirth} onChange={set("dateOfBirth")} />
+                </div>
+              </div>
+
+              <div className="grid gap-1.5">
+                <Label htmlFor="addr">Address</Label>
+                <Input id="addr" placeholder="Street / village" value={form.address} onChange={set("address")} />
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                <div className="grid gap-1.5">
+                  <Label htmlFor="city">City</Label>
+                  <Input id="city" value={form.city} onChange={set("city")} />
+                </div>
+                <div className="grid gap-1.5">
+                  <Label htmlFor="state">State</Label>
+                  <Input id="state" value={form.state} onChange={set("state")} />
+                </div>
+                <div className="grid gap-1.5">
+                  <Label htmlFor="pincode">Pincode</Label>
+                  <Input id="pincode" value={form.pincode} onChange={set("pincode")} />
+                </div>
+              </div>
+
               {!inviteToken && (
                 <div className="rounded-lg bg-muted/40 p-2.5 text-xs text-muted-foreground border">
                   Role: <strong>Farmer</strong> (Full farm owner & management access). Field workers must be invited by a farmer.

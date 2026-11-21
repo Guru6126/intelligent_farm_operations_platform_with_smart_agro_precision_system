@@ -62,7 +62,7 @@ const farmCfg: ResourceConfig<Farm & Record<string, unknown>> = {
       label: "Name",
       render: (r) => (
         <span className="font-medium">
-          {r.name} {r.is_demo && <StatusPill value="demo" tone="warn" />}
+          {r.name}
         </span>
       ),
     },

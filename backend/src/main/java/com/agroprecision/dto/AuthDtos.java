@@ -11,7 +11,10 @@ public final class AuthDtos {
     public record LoginRequest(@Email @NotBlank String email, @NotBlank String password) {}
 
     public record SignupRequest(@Email @NotBlank String email, @NotBlank @Size(min = 8, max = 72) String password,
-                                @NotBlank String fullName, String role, String inviteToken) {}
+                                String fullName, String firstName, String lastName,
+                                String phone, String phoneNumber, String gender,
+                                String dateOfBirth, String address, String city,
+                                String state, String pincode, String role, String inviteToken) {}
 
     public record ForgotRequest(@Email @NotBlank String email) {}
 

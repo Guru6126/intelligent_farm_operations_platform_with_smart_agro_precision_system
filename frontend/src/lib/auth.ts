@@ -7,6 +7,16 @@ export interface SessionInfo {
   email: string;
   fullName: string | null;
   roles: AppRole[];
+  user_id?: string;
+  first_name?: string | null;
+  last_name?: string | null;
+  phone_number?: string | null;
+  gender?: string | null;
+  date_of_birth?: string | null;
+  address?: string | null;
+  city?: string | null;
+  state?: string | null;
+  pincode?: string | null;
 }
 
 /** Re-validates the stored JWT with the backend and loads the user's roles. */
@@ -24,7 +34,23 @@ export async function signIn(email: string, password: string) {
   setToken(r.token);
 }
 
-export async function signUp(body: { email: string; password: string; fullName: string; role?: string; inviteToken?: string }) {
+export async function signUp(body: {
+  email: string;
+  password: string;
+  fullName?: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  phoneNumber?: string;
+  gender?: string;
+  dateOfBirth?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
+  role?: string;
+  inviteToken?: string;
+}) {
   const r = await api<{ token: string }>("/api/auth/signup", { method: "POST", body });
   setToken(r.token);
 }
