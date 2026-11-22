@@ -12,6 +12,18 @@ export const Route = createFileRoute("/_authenticated/inventory")({
 
 const itemCfg: ResourceConfig<InventoryItem> = {
   table: "inventory_items", title: "Stock items", singular: "Item",
+  validate: (values) => {
+    if (values.expiry_date) {
+      const d = new Date(String(values.expiry_date));
+      d.setHours(0, 0, 0, 0);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (d < today) {
+        return "Expiry date cannot be in the past.";
+      }
+    }
+    return null;
+  },
   fields: [
     { key: "name", label: "Item name", required: true },
     { key: "category", label: "Category", type: "select", options: ["seed", "fertilizer", "pesticide", "fuel", "tool", "other"], required: true, default: "fertilizer" },
@@ -19,7 +31,7 @@ const itemCfg: ResourceConfig<InventoryItem> = {
     { key: "reorder_level", label: "Reorder level", type: "number", default: 0 },
     { key: "unit_cost", label: "Unit cost (₹)", type: "number" },
     { key: "supplier", label: "Supplier" },
-    { key: "expiry_date", label: "Expiry date", type: "date" },
+    { key: "expiry_date", label: "Expiry date", type: "date", minDate: "today" },
   ],
   columns: [
     { key: "name", label: "Item", render: (r) => <span className="font-medium">{r.name}</span> },

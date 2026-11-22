@@ -119,6 +119,7 @@ public class DataService {
 
         if (table.equals("stock_transactions")) applyStock(v);
         if (table.equals("equipment_bookings")) checkBooking(v, null);
+        if (table.equals("irrigation_schedules")) checkIrrigation(v, null);
         repo.insert(table, v);
         if (table.equals("tasks")) notifyAssignee(v, null);
         audit(u, table, "insert", id);
@@ -167,6 +168,11 @@ public class DataService {
             Map<String, Object> merged = new HashMap<>(existing);
             merged.putAll(v);
             checkBooking(merged, id);
+        }
+        if (table.equals("irrigation_schedules") && v.containsKey("scheduled_at")) {
+            Map<String, Object> merged = new HashMap<>(existing);
+            merged.putAll(v);
+            checkIrrigation(merged, id);
         }
         repo.update(table, id, v);
         if (table.equals("tasks")) notifyAssignee(merge(existing, v), existing);
@@ -232,6 +238,24 @@ public class DataService {
         Integer n = db.queryForObject("SELECT COUNT(*) FROM equipment_bookings WHERE equipment_id = ? AND status <> 'cancelled' AND id <> ? AND starts_at < ? AND ends_at > ?",
                 Integer.class, v.get("equipment_id"), selfId == null ? "" : selfId, toDb(end), toDb(start));
         if (n != null && n > 0) throw ApiException.bad("This equipment is already booked for an overlapping time.");
+    }
+
+    /** Business rule: irrigation schedules cannot be booked for past dates/times. */
+    private void checkIrrigation(Map<String, Object> v, String selfId) {
+        Object s = v.get("scheduled_at");
+        if (s == null) return;
+        try {
+            String iso = s.toString().replace(" ", "T");
+            java.time.LocalDateTime scheduledTime = java.time.LocalDateTime.parse(iso.length() == 16 ? iso + ":00" : iso.substring(0, 19));
+            // Allow 5 minutes buffer for instant scheduling
+            if (scheduledTime.isBefore(java.time.LocalDateTime.now().minusMinutes(5))) {
+                throw ApiException.bad("Irrigation schedule start time cannot be in the past.");
+            }
+        } catch (ApiException e) {
+            throw e;
+        } catch (Exception e) {
+            // If parsing fails, allow database/type validation to handle
+        }
     }
 
     private static String toDb(String iso) {

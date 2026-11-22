@@ -297,7 +297,6 @@ function FarmsPage() {
                 <div>
                   <div className="flex items-start justify-between">
                     <h3 className="text-lg font-semibold">{f.name}</h3>
-                    {f.is_demo && <StatusPill value="demo data" tone="warn" />}
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">
                     {f.location ?? "No location"} · {f.total_area_acres ?? "?"} acres

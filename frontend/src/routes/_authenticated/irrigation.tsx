@@ -17,9 +17,19 @@ const tone = (s: string) => ((s === "active" ? "water" : s === "completed" ? "go
 
 const cfg: ResourceConfig<Irrigation> = {
   table: "irrigation_schedules", title: "Schedules", singular: "Schedule", orderBy: "scheduled_at",
+  validate: (values) => {
+    if (values.scheduled_at) {
+      const scheduledTime = new Date(String(values.scheduled_at)).getTime();
+      // Allow 5 minutes buffer for immediate scheduling
+      if (scheduledTime < Date.now() - 5 * 60 * 1000) {
+        return "Irrigation schedule start time cannot be in the past.";
+      }
+    }
+    return null;
+  },
   fields: [
     { key: "plot_id", label: "Plot", type: "ref", ref: { table: "plots", label: "name" } },
-    { key: "scheduled_at", label: "Start", type: "datetime", required: true },
+    { key: "scheduled_at", label: "Start", type: "datetime", required: true, minDate: "today" },
     { key: "duration_min", label: "Duration (min)", type: "number", required: true, default: 60 },
     { key: "water_litres", label: "Planned water (L)", type: "number" },
     { key: "method", label: "Method", type: "select", options: ["drip", "sprinkler", "flood", "furrow"], default: "drip" },

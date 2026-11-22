@@ -27,11 +27,23 @@ const workerCfg: ResourceConfig<R> = {
 };
 const taskCfg: ResourceConfig<Task> = {
   table: "tasks", title: "All tasks", singular: "Task",
+  validate: (values) => {
+    if (values.due_date) {
+      const d = new Date(String(values.due_date));
+      d.setHours(0, 0, 0, 0);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (d < today) {
+        return "Task due date cannot be in the past.";
+      }
+    }
+    return null;
+  },
   fields: [
     { key: "title", label: "Title", required: true },
     { key: "description", label: "Description", type: "textarea" },
     { key: "worker_id", label: "Worker", type: "ref", ref: { table: "workers", label: "name" } },
-    { key: "due_date", label: "Due date", type: "date" },
+    { key: "due_date", label: "Due date", type: "date", minDate: "today" },
     { key: "priority", label: "Priority", type: "select", options: ["low", "medium", "high"], required: true, default: "medium" },
     { key: "status", label: "Status", type: "select", options: ["todo", "in_progress", "done"], required: true, default: "todo" },
   ],
@@ -52,6 +64,18 @@ const budgetCfg: ResourceConfig<Budget> = {
 };
 const expenseCfg: ResourceConfig<Expense> = {
   table: "expenses", title: "Expenses", singular: "Expense", orderBy: "spent_on",
+  validate: (values) => {
+    if (values.spent_on) {
+      const d = new Date(String(values.spent_on));
+      d.setHours(0, 0, 0, 0);
+      const today = new Date();
+      today.setHours(23, 59, 59, 999);
+      if (d > today) {
+        return "Expense date cannot be in the future.";
+      }
+    }
+    return null;
+  },
   fields: [
     { key: "season", label: "Season", default: "Rabi 2026" },
     { key: "category", label: "Category", type: "select", options: ["Seed", "Fertilizer", "Pesticide", "Labour", "Irrigation", "Equipment", "Other"], required: true },

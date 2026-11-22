@@ -19,7 +19,7 @@ const eqCfg: ResourceConfig<Equipment> = {
     { key: "name", label: "Name", required: true },
     { key: "type", label: "Type", type: "select", options: ["tractor", "sprayer", "harvester", "pump", "implement", "other"] },
     { key: "status", label: "Status", type: "select", options: ["available", "in_use", "maintenance", "broken"], required: true, default: "available" },
-    { key: "next_service", label: "Next service", type: "date" },
+    { key: "next_service", label: "Next service", type: "date", minDate: "today" },
   ],
   columns: [
     { key: "name", label: "Name", render: (r) => <span className="font-medium">{r.name}</span> },
@@ -30,10 +30,26 @@ const eqCfg: ResourceConfig<Equipment> = {
 };
 const bookCfg: ResourceConfig<R> = {
   table: "equipment_bookings", title: "Bookings", singular: "Booking", writeAccess: "all", orderBy: "starts_at",
+  validate: (values) => {
+    if (values.starts_at) {
+      const startTime = new Date(String(values.starts_at)).getTime();
+      if (startTime < Date.now() - 5 * 60 * 1000) {
+        return "Booking start time cannot be in the past.";
+      }
+    }
+    if (values.starts_at && values.ends_at) {
+      const startTime = new Date(String(values.starts_at)).getTime();
+      const endTime = new Date(String(values.ends_at)).getTime();
+      if (endTime <= startTime) {
+        return "End time must be after start time.";
+      }
+    }
+    return null;
+  },
   fields: [
     { key: "equipment_id", label: "Equipment", type: "ref", ref: { table: "equipment", label: "name" }, required: true },
-    { key: "starts_at", label: "From", type: "datetime", required: true },
-    { key: "ends_at", label: "To", type: "datetime", required: true },
+    { key: "starts_at", label: "From", type: "datetime", required: true, minDate: "today" },
+    { key: "ends_at", label: "To", type: "datetime", required: true, minDate: "today" },
     { key: "purpose", label: "Purpose" },
     { key: "status", label: "Status", type: "select", options: ["pending", "approved", "cancelled"], default: "pending", required: true },
   ],
@@ -47,6 +63,18 @@ const bookCfg: ResourceConfig<R> = {
 };
 const mCfg: ResourceConfig<R> = {
   table: "maintenance_records", title: "Maintenance & breakdowns", singular: "Record", orderBy: "service_date",
+  validate: (values) => {
+    if (values.service_date) {
+      const d = new Date(String(values.service_date));
+      d.setHours(0, 0, 0, 0);
+      const today = new Date();
+      today.setHours(23, 59, 59, 999);
+      if (d > today) {
+        return "Maintenance service date cannot be in the future.";
+      }
+    }
+    return null;
+  },
   fields: [
     { key: "equipment_id", label: "Equipment", type: "ref", ref: { table: "equipment", label: "name" }, required: true },
     { key: "service_date", label: "Date", type: "date", required: true },

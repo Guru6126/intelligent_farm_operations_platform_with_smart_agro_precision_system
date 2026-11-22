@@ -68,6 +68,7 @@ export interface FieldDef {
   options?: string[];
   ref?: { table: string; label: string };
   default?: unknown;
+  minDate?: Date | "today";
 }
 
 export interface ColumnDef<T> {
@@ -443,6 +444,45 @@ function RecordDialog<T extends Row>({
       out[f.key] = v;
     }
 
+    // Default automated date/datetime validation across all forms:
+    for (const f of config.fields) {
+      if ((f.type === "date" || f.type === "datetime") && f.minDate) {
+        const val = out[f.key];
+        if (val) {
+          const minD = f.minDate === "today" ? new Date() : f.minDate;
+          minD.setHours(0, 0, 0, 0);
+
+          let inputDate: Date;
+          if (f.type === "datetime") {
+            inputDate = new Date(String(val));
+          } else {
+            const dateStr = String(val).slice(0, 10);
+            inputDate = parse(dateStr, "yyyy-MM-dd", new Date());
+            inputDate.setHours(0, 0, 0, 0);
+          }
+
+          if (f.type === "datetime") {
+            const now = new Date();
+            // allow a buffer of 5 minutes in case of immediate booking
+            now.setMinutes(now.getMinutes() - 5);
+            if (inputDate < now) {
+              const msg = `${f.label} cannot be scheduled for a past date or time.`;
+              setErrorMsg(msg);
+              toast.error(msg);
+              return;
+            }
+          } else {
+            if (inputDate < minD) {
+              const msg = `${f.label} cannot be an old or past date.`;
+              setErrorMsg(msg);
+              toast.error(msg);
+              return;
+            }
+          }
+        }
+      }
+    }
+
     if (config.validate) {
       const err = config.validate(out, existingRows);
 
@@ -631,6 +671,13 @@ function RecordDialog<T extends Row>({
                         <Calendar
                           mode="single"
                           selected={selectedDate}
+                          disabled={
+                            f.minDate === "today"
+                              ? { before: new Date(new Date().setHours(0, 0, 0, 0)) }
+                              : f.minDate instanceof Date
+                                ? { before: f.minDate }
+                                : undefined
+                          }
                           onSelect={(date) => {
                             if (!date) return;
 

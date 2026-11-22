@@ -14,6 +14,16 @@ export const STAGES = ["planned", "sown", "vegetative", "flowering", "harvest_re
 
 export const cropCfg: ResourceConfig<Crop> = {
   table: "crops", title: "Crop plans", singular: "Crop",
+  validate: (values) => {
+    if (values.sowing_date && values.expected_harvest) {
+      const sow = new Date(String(values.sowing_date)).getTime();
+      const harvest = new Date(String(values.expected_harvest)).getTime();
+      if (harvest <= sow) {
+        return "Expected harvest date must be after sowing date.";
+      }
+    }
+    return null;
+  },
   fields: [
     { key: "crop_name", label: "Crop", required: true },
     { key: "variety", label: "Variety" },
@@ -21,7 +31,7 @@ export const cropCfg: ResourceConfig<Crop> = {
     { key: "season", label: "Season", default: "Rabi 2026" },
     { key: "stage", label: "Stage", type: "select", options: STAGES, required: true, default: "planned" },
     { key: "sowing_date", label: "Sowing date", type: "date" },
-    { key: "expected_harvest", label: "Expected harvest", type: "date" },
+    { key: "expected_harvest", label: "Expected harvest", type: "date", minDate: "today" },
   ],
   columns: [
     { key: "crop_name", label: "Crop", render: (r) => <span className="font-medium">{r.crop_name} <span className="text-muted-foreground">{r.variety}</span></span> },
@@ -34,6 +44,18 @@ export const cropCfg: ResourceConfig<Crop> = {
 
 const activityCfg: ResourceConfig<Record<string, unknown> & { id: string }> = {
   table: "crop_activities", title: "Activity log", singular: "Activity", writeAccess: "all", orderBy: "activity_date",
+  validate: (values) => {
+    if (values.activity_date) {
+      const d = new Date(String(values.activity_date));
+      d.setHours(0, 0, 0, 0);
+      const today = new Date();
+      today.setHours(23, 59, 59, 999);
+      if (d > today) {
+        return "Activity date cannot be in the future.";
+      }
+    }
+    return null;
+  },
   fields: [
     { key: "crop_id", label: "Crop", type: "ref", ref: { table: "crops", label: "crop_name" } },
     { key: "activity", label: "Activity", required: true, type: "select", options: ["Sowing", "Fertilizer application", "Pesticide spray", "Weeding", "Irrigation", "Pest / disease observed", "Other"] },
@@ -50,6 +72,18 @@ const activityCfg: ResourceConfig<Record<string, unknown> & { id: string }> = {
 
 const harvestCfg: ResourceConfig<Harvest> = {
   table: "harvests", title: "Harvest records", singular: "Harvest", orderBy: "harvest_date",
+  validate: (values) => {
+    if (values.harvest_date) {
+      const d = new Date(String(values.harvest_date));
+      d.setHours(0, 0, 0, 0);
+      const today = new Date();
+      today.setHours(23, 59, 59, 999);
+      if (d > today) {
+        return "Harvest date cannot be in the future.";
+      }
+    }
+    return null;
+  },
   fields: [
     { key: "crop_id", label: "Crop", type: "ref", ref: { table: "crops", label: "crop_name" } },
     { key: "harvest_date", label: "Date", type: "date", required: true },
