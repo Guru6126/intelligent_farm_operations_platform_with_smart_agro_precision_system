@@ -95,7 +95,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-20 flex items-center gap-3 border-b bg-background/85 px-4 py-3 backdrop-blur lg:px-8">
           <button className="rounded-lg p-2 hover:bg-secondary lg:hidden" aria-label="Open menu" onClick={() => setOpen(true)}><Menu className="size-5" /></button>
-     <h1 className="text-xl font-bold">     Intelligent Farm Operations Platform with Smart Agro Precision System</h1>
+     <h1 className="text-xl font-bold">     Intelligent Farm Operations Platform</h1>
           {/* <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground" htmlFor="farm-switch">Farm</label>
           <select id="farm-switch" value={farmId ?? "all"} onChange={(e) => setFarmId(e.target.value === "all" ? null : e.target.value)}
             className="h-9 max-w-[16rem] rounded-lg border bg-card px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
