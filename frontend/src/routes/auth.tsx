@@ -160,7 +160,7 @@ const submit = async (e: React.FormEvent) => {
                 ? "We'll issue a one-time reset code."
                 : inviteToken && invitePreview
                 ? `You've been invited to join ${invitePreview.farmName}.`
-                : "Manage your farm operations."}
+                : ""}
             </p>
           </div>
 
@@ -236,11 +236,11 @@ const submit = async (e: React.FormEvent) => {
                 </div>
               </div>
 
-              {!inviteToken && (
+              {/* {!inviteToken && (
                 <div className="rounded-lg bg-muted/40 p-2.5 text-xs text-muted-foreground border">
                   Role: <strong>Farmer</strong> (Full farm owner & management access). Field workers must be invited by a farmer.
                 </div>
-              )}
+              )} */}
             </>
           )}
 

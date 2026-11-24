@@ -15,6 +15,13 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useFarm } from "@/lib/farm-context";
 import { useRows } from "@/components/ResourceTable";
 import { insertRow, listRows } from "@/services/crud";
@@ -287,24 +294,27 @@ export default function FarmMap() {
 
       {/* Farm selection */}
       <div className="space-y-4 rounded-2xl border bg-card p-4">
-        <label className="block space-y-1.5">
-          <span className="text-sm font-medium">Select farm</span>
-          <select
-            className="h-10 w-full rounded-lg border bg-background px-3 text-sm"
-            value={farmId}
-            onChange={(event) => {
-              setFarmId(event.target.value);
+        <div className="space-y-1.5">
+          <label htmlFor="farm-select" className="text-sm font-medium">Select farm</label>
+          <Select
+            value={farmId || undefined}
+            onValueChange={(val) => {
+              setFarmId(val);
               resetDrawing();
             }}
           >
-            <option value="">Choose a farm</option>
-            {farms.map((farm) => (
-              <option key={farm.id} value={String(farm.id)}>
-                {farm.name}
-              </option>
-            ))}
-          </select>
-        </label>
+            <SelectTrigger id="farm-select" className="h-10 w-full rounded-xl border border-[#b7d8bd] bg-[#f0f8f1] px-3 text-sm text-[#123b2a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#16834a]">
+              <SelectValue placeholder="Choose a farm" />
+            </SelectTrigger>
+            <SelectContent>
+              {farms.map((farm) => (
+                <SelectItem key={farm.id} value={String(farm.id)}>
+                  {farm.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
         {selectedFarm && (
           <p className="text-sm text-muted-foreground">
@@ -370,7 +380,7 @@ export default function FarmMap() {
                 <label className="space-y-1.5">
                   <span className="text-sm font-medium">Plot name *</span>
                   <input
-                    className="h-10 w-full rounded-lg border bg-background px-3 text-sm"
+                    className="h-10 w-full rounded-xl border border-[#b7d8bd] bg-[#f0f8f1] px-3 text-sm text-[#123b2a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#16834a]"
                     value={plotName}
                     onChange={(event) => setPlotName(event.target.value)}
                     placeholder="e.g. Ramu Rice Plot"
@@ -378,20 +388,24 @@ export default function FarmMap() {
                   />
                 </label>
 
-                <label className="space-y-1.5">
-                  <span className="text-sm font-medium">Crop *</span>
-                  <select
-                    className="h-10 w-full rounded-lg border bg-background px-3 text-sm"
+                <div className="space-y-1.5">
+                  <label htmlFor="crop-select" className="text-sm font-medium">Crop *</label>
+                  <Select
                     value={cropName}
-                    onChange={(event) => setCropName(event.target.value as CropName)}
+                    onValueChange={(val) => setCropName(val as CropName)}
                   >
-                    {CROP_OPTIONS.map((crop) => (
-                      <option key={crop.name} value={crop.name}>
-                        {crop.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                    <SelectTrigger id="crop-select" className="h-10 w-full rounded-xl border border-[#b7d8bd] bg-[#f0f8f1] px-3 text-sm text-[#123b2a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#16834a]">
+                      <SelectValue placeholder="Select crop" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CROP_OPTIONS.map((crop) => (
+                        <SelectItem key={crop.name} value={crop.name}>
+                          {crop.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
                 <label className="space-y-1.5">
                   <span className="text-sm font-medium">Soil pH</span>
@@ -400,26 +414,30 @@ export default function FarmMap() {
                     min="0"
                     max="14"
                     step="0.1"
-                    className="h-10 w-full rounded-lg border bg-background px-3 text-sm"
+                    className="h-10 w-full rounded-xl border border-[#b7d8bd] bg-[#f0f8f1] px-3 text-sm text-[#123b2a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#16834a]"
                     value={soilPH}
                     onChange={(event) => setSoilPH(event.target.value)}
                   />
                 </label>
 
-                <label className="space-y-1.5">
-                  <span className="text-sm font-medium">Soil type</span>
-                  <select
-                    className="h-10 w-full rounded-lg border bg-background px-3 text-sm"
+                <div className="space-y-1.5">
+                  <label htmlFor="soil-type-select" className="text-sm font-medium">Soil type</label>
+                  <Select
                     value={soilType}
-                    onChange={(event) => setSoilType(event.target.value)}
+                    onValueChange={(val) => setSoilType(val)}
                   >
-                    <option>Red Sandy Soil</option>
-                    <option>Sandy Loam</option>
-                    <option>Black Soil</option>
-                    <option>Alluvial Soil</option>
-                    <option>Clay Soil</option>
-                  </select>
-                </label>
+                    <SelectTrigger id="soil-type-select" className="h-10 w-full rounded-xl border border-[#b7d8bd] bg-[#f0f8f1] px-3 text-sm text-[#123b2a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#16834a]">
+                      <SelectValue placeholder="Select soil type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Red Sandy Soil">Red Sandy Soil</SelectItem>
+                      <SelectItem value="Sandy Loam">Sandy Loam</SelectItem>
+                      <SelectItem value="Black Soil">Black Soil</SelectItem>
+                      <SelectItem value="Alluvial Soil">Alluvial Soil</SelectItem>
+                      <SelectItem value="Clay Soil">Clay Soil</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
                 <div className="flex items-center gap-2 text-sm md:col-span-2">
                   <span
