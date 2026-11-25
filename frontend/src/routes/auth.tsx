@@ -2,10 +2,21 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Leaf, UserCheck } from "lucide-react";
+import { Leaf, UserCheck, Calendar as CalendarIcon } from "lucide-react";
+import { format, parse, isValid } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
 import { validateValues } from "@/lib/validation";
 import { signIn, signUp } from "@/lib/auth";
@@ -127,6 +138,11 @@ const submit = async (e: React.FormEvent) => {
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm({ ...form, [k]: e.target.value });
 
+  const parsedDob = form.dateOfBirth
+    ? parse(form.dateOfBirth.slice(0, 10), "yyyy-MM-dd", new Date())
+    : undefined;
+  const selectedDob = parsedDob && isValid(parsedDob) ? parsedDob : undefined;
+
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       <div className="relative hidden lg:block">
@@ -198,21 +214,52 @@ const submit = async (e: React.FormEvent) => {
               <div className="grid grid-cols-2 gap-2">
                 <div className="grid gap-1.5">
                   <Label htmlFor="gender">Gender</Label>
-                  <select
-                    id="gender"
-                    className="h-10 rounded-md border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    value={form.gender}
-                    onChange={set("gender")}
+                  <Select
+                    value={form.gender || undefined}
+                    onValueChange={(val) => setForm({ ...form, gender: val })}
                   >
-                    <option value="">Select</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                  </select>
+                    <SelectTrigger
+                      id="gender"
+                      className="h-10 w-full rounded-xl border border-[#b7d8bd] bg-[#f0f8f1] px-3 text-sm text-[#123b2a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#16834a]"
+                    >
+                      <SelectValue placeholder="Select" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Male">Male</SelectItem>
+                      <SelectItem value="Female">Female</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                      <SelectItem value="Prefer not to say">Prefer not to say</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="grid gap-1.5">
                   <Label htmlFor="dob">Date of Birth</Label>
-                  <Input id="dob" type="date" value={form.dateOfBirth} onChange={set("dateOfBirth")} />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        id="dob"
+                        type="button"
+                        variant="outline"
+                        className="h-10 w-full justify-between rounded-xl border border-[#b7d8bd] bg-[#f0f8f1] px-3 text-sm font-normal text-[#123b2a] hover:bg-[#eaf6ec]"
+                      >
+                        <span className={cn("text-left", !form.dateOfBirth && "text-[#78917d]")}>
+                          {selectedDob ? format(selectedDob, "dd-MM-yyyy") : "DD-MM-YYYY"}
+                        </span>
+                        <CalendarIcon className="ml-auto size-4 shrink-0 text-[#16834a]" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto border-0 bg-transparent p-0 shadow-none" align="end">
+                      <Calendar
+                        mode="single"
+                        selected={selectedDob}
+                        onSelect={(date) => {
+                          if (!date) return;
+                          setForm({ ...form, dateOfBirth: format(date, "yyyy-MM-dd") });
+                        }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
 
