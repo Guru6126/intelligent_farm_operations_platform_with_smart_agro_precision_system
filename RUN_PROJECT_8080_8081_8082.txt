@@ -1,0 +1,35 @@
+FARMVERSE INTEGRATED PROJECT - RUN ORDER
+
+Ports:
+  Frontend: 8080
+  Dev Main Backend: 8081
+  FarmVerse Chatbot: 8082
+
+Open THREE separate PowerShell terminals. Keep each server running in its own terminal.
+
+1) FRONTEND (Terminal 1)
+   cd <project-root>\frontend
+   npm install   (only if node_modules is missing)
+   npm run dev -- --host 0.0.0.0 --port 8080
+   Open http://localhost:8080
+
+2) DEV MAIN BACKEND (Terminal 2)
+   cd <project-root>\farmverse-chatbot\farmverse-chatbot
+   $env:SERVER_PORT="8081"
+   .\mvnw.cmd -f ..\..\backend\pom.xml spring-boot:run
+   Health check: http://localhost:8081/api/health
+
+3) FARMVERSE CHATBOT (Terminal 3)
+   cd <project-root>\farmverse-chatbot\farmverse-chatbot
+   $env:CHATBOT_PORT="8082"
+   .\mvnw.cmd spring-boot:run
+   Open http://localhost:8082
+   Health check: http://localhost:8082/api/chatbot/health
+
+IMPORTANT:
+- Do not run two servers in the same terminal.
+- Keep all three terminals open while testing.
+- Chatbot page now calls its own API using same-origin requests on port 8082.
+- The Dev frontend and Dev main backend source files are retained from the original Dev ZIP.
+- Java 21 and MySQL must be installed; Ollama is required for AI fallback/semantic features.
+- Maven Wrapper may need internet access on first run to download Maven/dependencies.

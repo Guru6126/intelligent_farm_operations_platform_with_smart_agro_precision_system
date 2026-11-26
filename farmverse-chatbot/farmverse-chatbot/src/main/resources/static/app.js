@@ -2,8 +2,10 @@
 
 (function () {
   const params = new URLSearchParams(location.search);
+  // Chatbot UI and API are served by the same Spring Boot app on port 8082.
+  // Use same-origin requests in the browser; retain a localhost fallback for file previews.
   const API_BASE = (params.get("api")
-    || (location.port === "8080" && location.protocol.startsWith("http") ? "" : "http://localhost:8080"))
+    || (location.protocol.startsWith("http") ? "" : "http://localhost:8082"))
     .replace(/\/$/, "");
 
   const TOPICS = {
