@@ -80,7 +80,7 @@ function Dashboard() {
           {canManage(session.roles) && (
             <div className="flex gap-2">
               <Button asChild variant="outline"><Link to="/farms">Create farm</Link></Button>
-              
+              {/* <Button onClick={() => seed.mutate()} disabled={seed.isPending}>Load Demo Data</Button> */}
             </div>
           )}
         </div>
