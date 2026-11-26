@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { PageHeader, StatCard } from "@/components/AppShell";
 import { ResourceTable, StatusPill, useRows, type ResourceConfig } from "@/components/ResourceTable";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { updateRow } from "@/services/crud";
 import type { Irrigation } from "@/lib/types";
 
@@ -41,9 +42,42 @@ const cfg: ResourceConfig<Irrigation> = {
     { key: "plot_id", label: "Plot" },
     { key: "method", label: "Method" },
     { key: "water_litres", label: "Water (L)", render: (r) => Number(r.water_litres).toLocaleString() },
-    { key: "status", label: "Status", render: (r) => <StatusPill value={r.status} tone={tone(r.status)} /> },
+    { key: "status", label: "Status", render: (r) => <IrrigationStatusSelect item={r} /> },
   ],
 };
+
+const STATUS_LABELS: Record<string, string> = {
+  upcoming: "Upcoming",
+  active: "Active",
+  completed: "Completed",
+  skipped: "Skipped",
+};
+
+function IrrigationStatusSelect({ item }: { item: Irrigation }) {
+  const qc = useQueryClient();
+  const mut = useMutation({
+    mutationFn: (status: string) => updateRow("irrigation_schedules", item.id, { status }),
+    onSuccess: () => {
+      toast.success("Irrigation status updated");
+      qc.invalidateQueries();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <Select value={item.status} onValueChange={(v) => mut.mutate(v)} disabled={mut.isPending}>
+      <SelectTrigger className="h-8 w-[135px] text-xs">
+        <SelectValue>{STATUS_LABELS[item.status] ?? item.status}</SelectValue>
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="upcoming">Upcoming</SelectItem>
+        <SelectItem value="active">Active</SelectItem>
+        <SelectItem value="completed">Completed</SelectItem>
+        <SelectItem value="skipped">Skipped</SelectItem>
+      </SelectContent>
+    </Select>
+  );
+}
 
 function Drops() {
   return (
