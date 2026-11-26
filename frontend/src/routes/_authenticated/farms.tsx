@@ -336,7 +336,7 @@ function FarmsPage() {
                   </div>
                 </div>
 
-                {canManage(session.roles) && f.owner_id === session.userId && (
+                {canManage(session.roles) && (
                   <AddMember farmId={f.id} />
                 )}
               </div>
@@ -609,6 +609,7 @@ function PlotCropGrid({
                   >
                     <Link
                       to="/map"
+                      search={{ plotId: String(plot.id), farmId: String(plot.farm_id) }}
                       title={`Mark boundary on map for ${plot.name} (${farm?.name ?? "Farm"})`}
                     >
                       <Compass className="size-3.5" />

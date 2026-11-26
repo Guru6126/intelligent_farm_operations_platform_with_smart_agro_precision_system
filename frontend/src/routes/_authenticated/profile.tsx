@@ -217,6 +217,8 @@ function ProfilePage() {
                   <Calendar
                     mode="single"
                     selected={selectedDob}
+                    endMonth={new Date()}
+                    disabled={{ after: new Date() }}
                     onSelect={(date) => {
                       if (!date) return;
                       setForm({ ...form, date_of_birth: format(date, "yyyy-MM-dd") });

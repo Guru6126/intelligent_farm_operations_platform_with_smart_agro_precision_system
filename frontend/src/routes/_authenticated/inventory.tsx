@@ -3,6 +3,7 @@ import { Package, AlertTriangle } from "lucide-react";
 import { PageHeader } from "@/components/AppShell";
 import { ResourceTable, StatusPill, useRows, type ResourceConfig } from "@/components/ResourceTable";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useFarm } from "@/lib/farm-context";
 import type { InventoryItem } from "@/lib/types";
 
 export const Route = createFileRoute("/_authenticated/inventory")({
@@ -35,6 +36,7 @@ const itemCfg: ResourceConfig<InventoryItem> = {
   ],
   columns: [
     { key: "name", label: "Item", render: (r) => <span className="font-medium">{r.name}</span> },
+    { key: "farm_id", label: "Farm", render: (r) => <FarmName id={r.farm_id} /> },
     { key: "category", label: "Category", render: (r) => <StatusPill value={r.category} /> },
     { key: "quantity", label: "In stock", render: (r) => <StockBar item={r} /> },
     { key: "supplier", label: "Supplier" },
@@ -58,6 +60,12 @@ const txnCfg: ResourceConfig<Record<string, unknown> & { id: string }> = {
     { key: "note", label: "Note" },
   ],
 };
+
+function FarmName({ id }: { id: string }) {
+  const { farms } = useFarm();
+  const farm = farms.find((f) => String(f.id) === String(id));
+  return <span className="text-muted-foreground">{farm?.name ?? "—"}</span>;
+}
 
 function StockBar({ item }: { item: InventoryItem }) {
   const q = Number(item.quantity), r = Number(item.reorder_level);

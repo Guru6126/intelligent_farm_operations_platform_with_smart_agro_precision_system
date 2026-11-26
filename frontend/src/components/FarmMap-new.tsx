@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import { useFarm } from "@/lib/farm-context";
 import { useRows } from "@/components/ResourceTable";
-import { insertRow, listRows } from "@/services/crud";
+import { insertRow, listRows, updateRow } from "@/services/crud";
 import { canManage } from "@/lib/auth";
 import type { Plot, Crop } from "@/lib/types";
 import { calculateAreaAcres, calculateAreaHectares } from "@/lib/areaCalculator";
@@ -104,7 +104,27 @@ function MapFocus({ position }: { position: LatLng }) {
   return null;
 }
 
-export default function FarmMap() {
+function createSquareFromCenter([lat, lng]: LatLng, acres: number): LatLng[] {
+  const safeAcres = Number.isFinite(acres) && acres > 0 ? acres : 1;
+  const sideMeters = Math.sqrt(safeAcres * 4046.8564224);
+  const halfSide = sideMeters / 2;
+  const dLat = halfSide / 111320;
+  const dLng = halfSide / (111320 * Math.cos((lat * Math.PI) / 180));
+  return [
+    [lat - dLat, lng - dLng],
+    [lat - dLat, lng + dLng],
+    [lat + dLat, lng + dLng],
+    [lat + dLat, lng - dLng],
+  ];
+}
+
+export default function FarmMap({
+  initialPlotId,
+  initialFarmId,
+}: {
+  initialPlotId?: string;
+  initialFarmId?: string;
+} = {}) {
   const { farms, session, currentFarm } = useFarm();
 
   const plotsQuery = useRows<Plot>("plots");
@@ -117,7 +137,7 @@ export default function FarmMap() {
   const queryClient = useQueryClient();
   const manage = canManage(session.roles);
 
-  const [farmId, setFarmId] = useState(String(currentFarm?.id ?? farms[0]?.id ?? ""));
+  const [farmId, setFarmId] = useState(initialFarmId ?? String(currentFarm?.id ?? farms[0]?.id ?? ""));
   const [points, setPoints] = useState<LatLng[]>([]);
   const [plotName, setPlotName] = useState("");
   const [cropName, setCropName] = useState<CropName>("Rice");
@@ -126,6 +146,26 @@ export default function FarmMap() {
   const [selectedPlotId, setSelectedPlotId] = useState("");
 
   const selectedFarm = farms.find((farm) => String(farm.id) === farmId) ?? currentFarm ?? farms[0];
+  const targetPlot = initialPlotId ? plots.find((p) => String(p.id) === initialPlotId) : undefined;
+
+  const saveBoundary = useMutation({
+    mutationFn: async () => {
+      if (!targetPlot) throw new Error("No target plot selected.");
+      if (points.length !== 4) throw new Error("Click a point on the map first.");
+      const ring = [...points.map(([lat, lng]) => [lng, lat]), [points[0][1], points[0][0]]];
+      await updateRow("plots", targetPlot.id, {
+        boundary_geojson: { type: "Polygon", coordinates: [ring] },
+      });
+    },
+    onSuccess: async () => {
+      toast.success(`Boundary saved for ${targetPlot?.name ?? "plot"}.`);
+      setPoints([]);
+      await queryClient.invalidateQueries();
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Could not save boundary.");
+    },
+  });
 
   const farmPlots = useMemo(() => {
     const filtered = plots.filter((plot) => !farmId || String(plot.farm_id) === farmId);
@@ -322,7 +362,38 @@ export default function FarmMap() {
           </p>
         )}
 
-        {manage && (
+        {manage && targetPlot ? (
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h3 className="font-semibold">Mark boundary for {targetPlot.name}</h3>
+                <p className="text-sm text-muted-foreground">
+                  Click one point on the map to automatically place its {targetPlot.area_acres ?? 1} acre boundary.
+                </p>
+              </div>
+              <span className="rounded-full bg-muted px-3 py-1 text-sm">
+                {points.length === 4 ? "1/1 point placed" : "0/1 point"}
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                size="sm"
+                disabled={points.length !== 4 || saveBoundary.isPending}
+                onClick={() => saveBoundary.mutate()}
+              >
+                {saveBoundary.isPending ? "Saving..." : "Save Boundary"}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!points.length || saveBoundary.isPending}
+                onClick={() => setPoints([])}
+              >
+                Clear
+              </Button>
+            </div>
+          </div>
+        ) : manage && (
           <>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
@@ -367,7 +438,7 @@ export default function FarmMap() {
                 <div className="rounded-lg border p-3">
                   <p className="text-sm text-muted-foreground">Area (acres)</p>
                   <p className="text-xl font-bold">{areaAcres.toFixed(3)}</p>
-                </div>
+rm                </div>
                 <div className="rounded-lg border p-3">
                   <p className="text-sm text-muted-foreground">Area (hectares)</p>
                   <p className="text-xl font-bold">{areaHectares.toFixed(3)}</p>
@@ -540,10 +611,14 @@ export default function FarmMap() {
           })}
 
           <MapClickCapture
-            enabled={manage && points.length < 4 && !savePlot.isPending}
-            onPoint={(point) =>
-              setPoints((previous) => (previous.length < 4 ? [...previous, point] : previous))
-            }
+            enabled={manage && (targetPlot ? !saveBoundary.isPending : points.length < 4 && !savePlot.isPending)}
+            onPoint={(point) => {
+              if (targetPlot) {
+                setPoints(createSquareFromCenter(point, Number(targetPlot.area_acres) || 1));
+              } else {
+                setPoints((previous) => (previous.length < 4 ? [...previous, point] : previous));
+              }
+            }}
           />
 
           {points.length >= 2 && (

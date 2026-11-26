@@ -10,10 +10,18 @@ import {
   DayButton,
   DayPicker,
   getDefaultClassNames,
+  type DropdownProps,
 } from "react-day-picker";
 
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type CalendarProps = React.ComponentProps<typeof DayPicker> & {
   buttonVariant?: React.ComponentProps<typeof Button>["variant"];
@@ -40,6 +48,7 @@ function Calendar({
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
+      endMonth={props.endMonth ?? new Date(new Date().getFullYear() + 10, 11)}
 
 
       className={cn(
@@ -160,6 +169,37 @@ function Calendar({
             return <ChevronRightIcon className={cn("size-4", className)} {...props} />;
           }
           return <ChevronDownIcon className={cn("size-4", className)} {...props} />;
+        },
+        Dropdown: ({ value, onChange, options, "aria-label": ariaLabel }: DropdownProps) => {
+          const selected = options?.find((opt) => opt.value === value);
+          const handleValueChange = (newValue: string) => {
+            const event = {
+              target: { value: newValue },
+            } as React.ChangeEvent<HTMLSelectElement>;
+            onChange?.(event);
+          };
+          return (
+            <Select value={value?.toString()} onValueChange={handleValueChange}>
+              <SelectTrigger
+                aria-label={ariaLabel}
+                className="h-8 gap-1.5 rounded-lg border border-[#b4d7bc] bg-[#e9f5eb] px-2.5 text-sm font-medium text-[#123b2a] shadow-none hover:bg-[#dff1e2] focus:ring-1 focus:ring-[#16834a]"
+              >
+                <SelectValue>{selected?.label}</SelectValue>
+              </SelectTrigger>
+              <SelectContent className="max-h-60 rounded-xl border border-[#b4d7bc] bg-white text-[#123b2a] shadow-lg">
+                {options?.map((opt) => (
+                  <SelectItem
+                    key={opt.value}
+                    value={opt.value.toString()}
+                    disabled={opt.disabled}
+                    className="rounded-lg text-sm text-[#123b2a] focus:bg-[#dff1e2] focus:text-[#123b2a] data-[state=checked]:bg-[#dff1e2] data-[state=checked]:font-semibold data-[state=checked]:text-[#123b2a]"
+                  >
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          );
         },
         DayButton: CalendarDayButton,
         WeekNumber: ({ children, ...props }) => (

@@ -1,8 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Wrench } from "lucide-react";
+import { toast } from "sonner";
 import { PageHeader } from "@/components/AppShell";
 import { ResourceTable, StatusPill, useRows, type ResourceConfig } from "@/components/ResourceTable";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useFarm } from "@/lib/farm-context";
+import { updateRow } from "@/services/crud";
 import type { Equipment } from "@/lib/types";
 
 export const Route = createFileRoute("/_authenticated/equipment")({
@@ -23,8 +28,9 @@ const eqCfg: ResourceConfig<Equipment> = {
   ],
   columns: [
     { key: "name", label: "Name", render: (r) => <span className="font-medium">{r.name}</span> },
+    { key: "farm_id", label: "Farm", render: (r) => <FarmName id={r.farm_id} /> },
     { key: "type", label: "Type" },
-    { key: "status", label: "Status", render: (r) => <StatusPill value={r.status} tone={st(r.status)} /> },
+    { key: "status", label: "Status", render: (r) => <EquipmentStatusSelect item={r} /> },
     { key: "next_service", label: "Next service" },
   ],
 };
@@ -89,17 +95,61 @@ const mCfg: ResourceConfig<R> = {
   ],
 };
 
+function FarmName({ id }: { id: string }) {
+  const { farms } = useFarm();
+  const farm = farms.find((f) => String(f.id) === String(id));
+  return <span className="text-muted-foreground">{farm?.name ?? "—"}</span>;
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  available: "Available",
+  in_use: "In Use",
+  maintenance: "Maintenance",
+  broken: "Broken",
+};
+
+function EquipmentStatusSelect({ item }: { item: Equipment }) {
+  const qc = useQueryClient();
+  const mut = useMutation({
+    mutationFn: (status: string) => updateRow("equipment", item.id, { status }),
+    onSuccess: () => {
+      toast.success("Equipment status updated");
+      qc.invalidateQueries();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <Select value={item.status} onValueChange={(v) => mut.mutate(v)} disabled={mut.isPending}>
+      <SelectTrigger className="h-8 w-[135px] text-xs">
+        <SelectValue>{STATUS_LABELS[item.status] ?? item.status}</SelectValue>
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="available">Available</SelectItem>
+        <SelectItem value="in_use">In Use</SelectItem>
+        <SelectItem value="maintenance">Maintenance</SelectItem>
+        <SelectItem value="broken">Broken</SelectItem>
+      </SelectContent>
+    </Select>
+  );
+}
+
 function EquipmentPage() {
   const eq = useRows<Equipment>("equipment").data ?? [];
+  const { farms } = useFarm();
   return (
     <div className="space-y-6">
       <PageHeader icon={Wrench} title="Equipment & Machinery" subtitle="Overlapping bookings are blocked automatically." />
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {eq.map((e, i) => {
           const due = e.next_service ? Math.round((new Date(e.next_service).getTime() - Date.now()) / 86400000) : null;
+          const farm = farms.find((f) => String(f.id) === String(e.farm_id));
           return (
             <div key={e.id} className="lift animate-slide-in rounded-2xl border bg-card p-5 shadow-soft" style={{ animationDelay: `${i * 60}ms` }}>
               <div className="flex items-center justify-between"><h3 className="font-semibold">{e.name}</h3><StatusPill value={e.status} tone={st(e.status)} /></div>
+              {e.status === "in_use" && farm && (
+                <p className="mt-1.5 text-xs font-medium text-primary">In use at {farm.name}</p>
+              )}
               <p className={`mt-2 text-sm ${due !== null && due <= 7 ? "font-medium text-foreground" : "text-muted-foreground"}`}>
                 {due === null ? "No service date" : due < 0 ? `Service overdue by ${-due}d` : `Service in ${due}d`}
               </p>

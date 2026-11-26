@@ -252,6 +252,8 @@ const submit = async (e: React.FormEvent) => {
                       <Calendar
                         mode="single"
                         selected={selectedDob}
+                        endMonth={new Date()}
+                        disabled={{ after: new Date() }}
                         onSelect={(date) => {
                           if (!date) return;
                           setForm({ ...form, dateOfBirth: format(date, "yyyy-MM-dd") });
