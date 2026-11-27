@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Droplets } from "lucide-react";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import { Droplets, Bot } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader, StatCard } from "@/components/AppShell";
 import { ResourceTable, StatusPill, useRows, type ResourceConfig } from "@/components/ResourceTable";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useFarm } from "@/lib/farm-context";
 import { updateRow } from "@/services/crud";
 import type { Irrigation } from "@/lib/types";
 
@@ -92,9 +93,60 @@ function Drops() {
   );
 }
 
+interface ForecastData {
+  daily: {
+    time: string[];
+    temperature_2m_max: number[];
+    precipitation_sum: number[];
+    wind_speed_10m_max: number[];
+  };
+}
+
+function buildIrrigationWeatherMessage(alertList: { d: string; rain: number; wind: number; hi: number }[]): string {
+  if (alertList.length === 0) return "";
+  const parts: string[] = [];
+  for (const a of alertList) {
+    const dateLabel = new Date(a.d).toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" });
+    const reasons: string[] = [];
+    if (a.hi > 40) reasons.push(`temperatures are expected to reach ${Math.round(a.hi)}°C`);
+    if (a.rain > 20) reasons.push(`heavy rainfall of ${Math.round(a.rain)} mm is forecast`);
+    if (a.wind > 40) reasons.push(`strong winds of up to ${Math.round(a.wind)} km/h are expected`);
+    parts.push(`On ${dateLabel}, ${reasons.join(" and ")}.`);
+  }
+  return parts.join(" ") + " Consider rescheduling or skipping upcoming irrigation sessions on these days.";
+}
+
 function IrrigationPage() {
+  const { farms } = useFarm();
   const rows = useRows<Irrigation>("irrigation_schedules", "scheduled_at").data ?? [];
   const qc = useQueryClient();
+
+  // Use first farm that has coordinates for weather advisory
+  const farm = farms.find((f) => f.latitude && f.longitude) ?? farms[0];
+  const hasCoords = Boolean(farm?.latitude && farm?.longitude);
+
+  const { data: forecast } = useQuery<ForecastData>({
+    queryKey: ["forecast-irrigation", farm?.id, farm?.latitude, farm?.longitude],
+    enabled: hasCoords,
+    queryFn: async () => {
+      const u = `https://api.open-meteo.com/v1/forecast?latitude=${farm!.latitude}&longitude=${farm!.longitude}&daily=temperature_2m_max,precipitation_sum,wind_speed_10m_max&timezone=auto`;
+      const r = await fetch(u);
+      if (!r.ok) throw new Error("Weather service unavailable.");
+      return (await r.json()) as ForecastData;
+    },
+  });
+
+  const weatherAlerts = forecast
+    ? forecast.daily.time
+      .map((d, i) => ({
+        d,
+        rain: forecast.daily.precipitation_sum[i],
+        wind: forecast.daily.wind_speed_10m_max[i],
+        hi: forecast.daily.temperature_2m_max[i],
+      }))
+      .filter((x) => x.rain > 20 || x.wind > 40 || x.hi > 40)
+    : [];
+
   const active = rows.filter((r) => r.status === "active");
   const used = rows.filter((r) => r.status === "completed").reduce((s, r) => s + Number(r.water_litres), 0);
   const planned = rows.filter((r) => r.status === "upcoming").reduce((s, r) => s + Number(r.water_litres), 0);
@@ -111,6 +163,16 @@ function IrrigationPage() {
         <StatCard icon={Droplets} label="Water used (L)" value={used.toLocaleString()} hint="Completed schedules" delay={60} />
         <StatCard icon={Droplets} label="Planned (L)" value={planned.toLocaleString()} hint="Upcoming schedules" delay={120} />
       </div>
+      {weatherAlerts.length > 0 && (
+        <div className="flex items-center gap-3 rounded-xl border border-[#b7d8bd] bg-[#f0f8f1] px-4 py-3 text-sm text-[#123b2a]">
+          <div className="grid size-8 shrink-0 place-items-center rounded-lg bg-[#16834a]/15 text-[#16834a]">
+            <Bot className="size-4" />
+          </div>
+          <span>
+            {buildIrrigationWeatherMessage(weatherAlerts)}
+          </span>
+        </div>
+      )}
       {active.map((a) => (
         <div key={a.id} className="animate-rise rounded-2xl border border-water/40 bg-card p-5 shadow-soft">
           <div className="flex flex-wrap items-center gap-3">

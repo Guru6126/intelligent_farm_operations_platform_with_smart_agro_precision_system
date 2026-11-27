@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Package, AlertTriangle } from "lucide-react";
+import { Package, AlertTriangle, Bot } from "lucide-react";
 import { PageHeader } from "@/components/AppShell";
 import { ResourceTable, StatusPill, useRows, type ResourceConfig } from "@/components/ResourceTable";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -89,13 +89,30 @@ function ExpiryTag({ d }: { d: string }) {
 function InventoryPage() {
   const items = useRows<InventoryItem>("inventory_items").data ?? [];
   const low = items.filter((i) => Number(i.quantity) <= Number(i.reorder_level));
+  const outOfStock = low.filter((i) => Number(i.quantity) <= 0);
+  const lowOnly = low.filter((i) => Number(i.quantity) > 0);
+  const suggestionParts: string[] = [];
+  if (outOfStock.length > 0) {
+    suggestionParts.push(
+      `${outOfStock.map((l) => l.name).join(", ")} ${outOfStock.length === 1 ? "is" : "are"} out of stock — please restock as soon as possible.`
+    );
+  }
+  if (lowOnly.length > 0) {
+    suggestionParts.push(
+      `${lowOnly.map((l) => l.name).join(", ")} ${lowOnly.length === 1 ? "is" : "are"} running low in stock — please refill as soon as possible.`
+    );
+  }
   return (
     <div className="space-y-6">
       <PageHeader icon={Package} title="Inventory" subtitle="Stock changes only through movements — quantities can never go negative." />
       {low.length > 0 && (
-        <div role="alert" className="animate-pulse-once flex items-center gap-3 rounded-xl border border-destructive/30 bg-destructive-soft px-4 py-3 text-sm">
-          <AlertTriangle className="size-4 text-destructive" />
-          <span><strong>Low stock:</strong> {low.map((l) => l.name).join(", ")}</span>
+        <div className="flex items-center gap-3 rounded-xl border border-[#b7d8bd] bg-[#f0f8f1] px-4 py-3 text-sm text-[#123b2a]">
+          <div className="grid size-8 shrink-0 place-items-center rounded-lg bg-[#16834a]/15 text-[#16834a]">
+            <Bot className="size-4" />
+          </div>
+          <span>
+            {suggestionParts.join(" ")}
+          </span>
         </div>
       )}
       <Tabs defaultValue="items">

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { CloudSun, Sun, Cloud, CloudRain, Wind, MapPin, AlertCircle, Compass } from "lucide-react";
+import { CloudSun, Sun, Cloud, CloudRain, Wind, MapPin, AlertCircle, Compass, Bot } from "lucide-react";
 import { PageHeader } from "@/components/AppShell";
 import { ResourceTable, type ResourceConfig } from "@/components/ResourceTable";
 import {
@@ -93,6 +93,20 @@ function WeatherPage() {
   const alerts = data ? data.daily.time.map((d, i) => ({ d, rain: data.daily.precipitation_sum[i], wind: data.daily.wind_speed_10m_max[i], hi: data.daily.temperature_2m_max[i] }))
     .filter((x) => x.rain > 20 || x.wind > 40 || x.hi > 40) : [];
 
+  function buildWeatherMessage(alertList: { d: string; rain: number; wind: number; hi: number }[]): string {
+    if (alertList.length === 0) return "";
+    const parts: string[] = [];
+    for (const a of alertList) {
+      const dateLabel = new Date(a.d).toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" });
+      const reasons: string[] = [];
+      if (a.hi > 40) reasons.push(`temperatures expected to reach ${Math.round(a.hi)}°C`);
+      if (a.rain > 20) reasons.push(`heavy rainfall of ${Math.round(a.rain)} mm is forecast`);
+      if (a.wind > 40) reasons.push(`strong winds of up to ${Math.round(a.wind)} km/h are expected`);
+      parts.push(`On ${dateLabel}, ${reasons.join(" and ")}.`);
+    }
+    return parts.join(" ") + " It is advisable to postpone spraying and irrigation on these days.";
+  }
+
   return (
     <div className="space-y-6">
       {/* Farm Location Selector */}
@@ -170,17 +184,13 @@ function WeatherPage() {
       )}
 
       {alerts.length > 0 && (
-        <div role="alert" className="rounded-xl border border-destructive/30 bg-destructive-soft px-4 py-3 text-sm">
-          <strong>Weather advisory:</strong>{" "}
-          {alerts
-            .map(
-              (a) =>
-                `${a.d}: ${a.rain > 20 ? `heavy rain ${a.rain}mm ` : ""}${
-                  a.wind > 40 ? `strong wind ${a.wind}km/h ` : ""
-                }${a.hi > 40 ? `heat ${a.hi}°C` : ""}`,
-            )
-            .join(" · ")}
-          . Consider postponing spraying and irrigation.
+        <div className="flex items-center gap-3 rounded-xl border border-[#b7d8bd] bg-[#f0f8f1] px-4 py-3 text-sm text-[#123b2a]">
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#16834a]/15 text-[#16834a]">
+            <Bot className="size-4" />
+          </div>
+          <span className="self-center">
+            {buildWeatherMessage(alerts)}
+          </span>
         </div>
       )}
 
