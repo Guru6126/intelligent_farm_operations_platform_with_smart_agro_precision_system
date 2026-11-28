@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { PageHeader } from "@/components/AppShell";
 import { ResourceTable, StatusPill, useRows, type ResourceConfig } from "@/components/ResourceTable";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { updateRow } from "@/services/crud";
 import { useFarm } from "@/lib/farm-context";
 import type { Budget, Expense, Task } from "@/lib/types";
@@ -50,9 +51,40 @@ const taskCfg: ResourceConfig<Task> = {
   columns: [
     { key: "title", label: "Task" }, { key: "worker_id", label: "Worker" }, { key: "due_date", label: "Due" },
     { key: "priority", label: "Priority", render: (r) => <StatusPill value={r.priority} tone={r.priority === "high" ? "bad" : "muted"} /> },
-    { key: "status", label: "Status", render: (r) => <StatusPill value={r.status} tone="good" /> },
+    { key: "status", label: "Status", render: (r) => <TaskStatusSelect item={r} /> },
   ],
 };
+
+const TASK_STATUS_LABELS: Record<string, string> = {
+  todo: "Todo",
+  in_progress: "In Progress",
+  done: "Done",
+};
+
+function TaskStatusSelect({ item }: { item: Task }) {
+  const qc = useQueryClient();
+  const mut = useMutation({
+    mutationFn: (status: string) => updateRow("tasks", item.id, { status }),
+    onSuccess: () => {
+      toast.success("Task status updated");
+      qc.invalidateQueries();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <Select value={item.status} onValueChange={(v) => mut.mutate(v)} disabled={mut.isPending}>
+      <SelectTrigger className="h-8 w-[135px] text-xs">
+        <SelectValue>{TASK_STATUS_LABELS[item.status] ?? item.status}</SelectValue>
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="todo">Todo</SelectItem>
+        <SelectItem value="in_progress">In Progress</SelectItem>
+        <SelectItem value="done">Done</SelectItem>
+      </SelectContent>
+    </Select>
+  );
+}
 const budgetCfg: ResourceConfig<Budget> = {
   table: "budgets", title: "Seasonal budgets", singular: "Budget line",
   fields: [

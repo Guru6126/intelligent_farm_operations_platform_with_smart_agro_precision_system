@@ -36,8 +36,15 @@ function AdminPage() {
   const qc = useQueryClient();
   const { data = [], isLoading } = useQuery({ queryKey: ["admin-users"], queryFn: () => api<AdminUser[]>("/api/admin/users") });
   const setRole = useMutation({
-    mutationFn: (v: { id: string; role: AppRole; enabled: boolean }) =>
-      api(`/api/admin/users/${v.id}/roles`, { method: "POST", body: { role: v.role, enabled: v.enabled } }),
+    mutationFn: async (v: { user: AdminUser; role: AppRole; enabled: boolean }) => {
+      if (v.enabled) {
+        const others = v.user.roles.filter((r) => r !== v.role);
+        for (const other of others) {
+          await api(`/api/admin/users/${v.user.id}/roles`, { method: "POST", body: { role: other, enabled: false } });
+        }
+      }
+      return api(`/api/admin/users/${v.user.id}/roles`, { method: "POST", body: { role: v.role, enabled: v.enabled } });
+    },
     onSuccess: () => { toast.success("Role updated"); qc.invalidateQueries({ queryKey: ["admin-users"] }); },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -70,13 +77,17 @@ function AdminPage() {
                   {u.city || u.state ? `${u.city ?? ""}${u.city && u.state ? ", " : ""}${u.state ?? ""}` : "—"}
                 </td>
                 <td className="p-3 text-muted-foreground">{u.created_at?.slice(0, 10) ?? "—"}</td>
-                {ROLES.map((r) => (
-                  <td key={r} className="p-3 text-center">
-                    <input type="checkbox" aria-label={`${roleLabel[r]} role for ${u.email}`} className="size-4 accent-[var(--primary)]"
-                      checked={u.roles.includes(r)} disabled={setRole.isPending}
-                      onChange={(e) => setRole.mutate({ id: u.id, role: r, enabled: e.target.checked })} />
-                  </td>
-                ))}
+                {ROLES.map((r) => {
+                  const isProtected = u.email.toLowerCase() === "learningaws2005@gmail.com";
+                  return (
+                    <td key={r} className="p-3 text-center">
+                      <input type="checkbox" aria-label={`${roleLabel[r]} role for ${u.email}`} className="size-4 accent-[var(--primary)]"
+                        checked={u.roles.includes(r)} disabled={setRole.isPending || isProtected}
+                        title={isProtected ? "Primary admin account cannot be modified" : undefined}
+                        onChange={(e) => !isProtected && setRole.mutate({ user: u, role: r, enabled: e.target.checked })} />
+                    </td>
+                  );
+                })}
               </tr>
             ))}
           </tbody>

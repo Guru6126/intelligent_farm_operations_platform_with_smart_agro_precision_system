@@ -1,8 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Sprout } from "lucide-react";
+import { toast } from "sonner";
 import { PageHeader } from "@/components/AppShell";
 import { ResourceTable, StatusPill, useRows, type ResourceConfig } from "@/components/ResourceTable";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { updateRow } from "@/services/crud";
 import type { Crop, Harvest } from "@/lib/types";
 
 export const Route = createFileRoute("/_authenticated/crops")({
@@ -37,10 +41,46 @@ export const cropCfg: ResourceConfig<Crop> = {
     { key: "crop_name", label: "Crop", render: (r) => <span className="font-medium">{r.crop_name} <span className="text-muted-foreground">{r.variety}</span></span> },
     { key: "plot_id", label: "Plot" },
     { key: "season", label: "Season" },
-    { key: "stage", label: "Stage", render: (r) => <StatusPill value={r.stage} tone={r.stage === "harvested" ? "muted" : "good"} /> },
+    { key: "stage", label: "Stage", render: (r) => <CropStageSelect item={r} /> },
     { key: "expected_harvest", label: "Harvest due" },
   ],
 };
+
+const STAGE_LABELS: Record<string, string> = {
+  planned: "Planned",
+  sown: "Sown",
+  vegetative: "Vegetative",
+  flowering: "Flowering",
+  harvest_ready: "Harvest Ready",
+  harvested: "Harvested",
+};
+
+function CropStageSelect({ item }: { item: Crop }) {
+  const qc = useQueryClient();
+  const mut = useMutation({
+    mutationFn: (stage: string) => updateRow("crops", item.id, { stage }),
+    onSuccess: () => {
+      toast.success("Crop stage updated");
+      qc.invalidateQueries();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <Select value={item.stage} onValueChange={(v) => mut.mutate(v)} disabled={mut.isPending}>
+      <SelectTrigger className="h-8 w-[140px] text-xs">
+        <SelectValue>{STAGE_LABELS[item.stage] ?? item.stage}</SelectValue>
+      </SelectTrigger>
+      <SelectContent>
+        {STAGES.map((s) => (
+          <SelectItem key={s} value={s}>
+            {STAGE_LABELS[s] ?? s}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
 
 const activityCfg: ResourceConfig<Record<string, unknown> & { id: string }> = {
   table: "crop_activities", title: "Activity log", singular: "Activity", writeAccess: "all", orderBy: "activity_date",
